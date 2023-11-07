@@ -1,9 +1,140 @@
 <!doctype html>
 <html>
-    <head>
-        <title>Home page</title>
-    </head>
-    <body>
-        <h1>Home Page!</h1>
-    </body>
+<head>
+    <title>Chest AI X-ray Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .container {
+            max-width: 45%;
+        }
+        .table-container {
+            max-width: 45%;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .image-placeholder {
+            text-align: center;
+        }
+        .image-placeholder img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chest AI X-ray Report</h1>
+        <form>
+            <div class="form-group">
+                <label for="patientName">Patient Name:</label>
+                <input type="text" id="patientName" name="patientName" placeholder="Enter patient's name">
+            </div>
+            <div class="form-group">
+                <label for="patientAge">Age:</label>
+                <input type="text" id="patientAge" name="patientAge" placeholder="Enter patient's age">
+            </div>
+            <div class "form-group">
+                <label for="patientSex">Sex:</label>
+                <input type="text" id="patientSex" name="patientSex" placeholder="Enter patient's sex">
+            </div>
+            <div class="form-group">
+                <label for="scanDetails">Scan Details:</label>
+                <textarea id="scanDetails" name="scanDetails" rows="4" placeholder="Enter details of the scan"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="diseases">Diseases Associated with the Scan:</label>
+                <textarea id="diseases" name="diseases" rows="4" placeholder="Enter associated diseases, separated by commas"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="xrayImage">Upload Chest X-ray Image:</label>
+                <input type="file" id="xrayImage" name="xrayImage">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No.</th>
+                    <th>Diseases</th>
+                    <th>Probability</th>
+                    <th>Yes/No</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="image-placeholder">
+        <img src="https://i.ibb.co/bmmvn6Z/image-placeholder.jpg" alt="Image Placeholder">
+    </div>
+</body>
 </html>
