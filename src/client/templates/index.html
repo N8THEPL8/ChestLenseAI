@@ -1,140 +1,178 @@
-<!doctype html>
-<html>
-<head>
-    <title>Chest AI X-ray Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .container {
-            max-width: 45%;
-        }
-        .table-container {
-            max-width: 45%;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-        }
-        input[type="text"], input[type="file"] {
-            width: 100%;
-            padding: 10px;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .image-placeholder {
-            text-align: center;
-        }
-        .image-placeholder img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Chest AI X-ray Report</h1>
-        <form>
-            <div class="form-group">
-                <label for="patientName">Patient Name:</label>
-                <input type="text" id="patientName" name="patientName" placeholder="Enter patient's name">
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>Chest AI X-ray Report</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    background-color: #f7f7f7;
+                }
+
+                .header {
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: #3498db;
+                    color: #fff;
+                    padding: 20px 0;
+                }
+
+                h1 {
+                    font-size: 24px;
+                }
+
+                .main-content {
+                    display: flex;
+                    justify-content: center;
+                }
+
+                .container, .table-container {
+                    width: 50%;
+                    display: flex;
+                    flex-direction: column;
+                    background-color: #fff;
+                    padding: 20px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    margin: 20px;
+                }
+
+                h1 {
+                    text-align: center;
+                }
+
+                .form-group {
+                    margin-bottom: 20px;
+                }
+
+                label {
+                    display: block;
+                    font-weight: bold;
+                }
+
+                input[type="file"], input[type="text"] {
+                    width: 100%;
+                    padding: 10px;
+                    margin: 5px 0;
+                }
+
+                textarea {
+                    width: 100%;
+                    padding: 10px;
+                    margin: 5px 0;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                }
+
+                th, td {
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    text-align: center;
+                }
+
+                th {
+                    background-color: #f2f2f2;
+                }
+
+                .image-placeholder {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .image-placeholder img {
+                    max-width: 100%;
+                    height: auto;
+                }
+
+                #patientData {
+                    margin-bottom: 50px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Chest AI X-ray Report</h1>
             </div>
-            <div class="form-group">
-                <label for="patientAge">Age:</label>
-                <input type="text" id="patientAge" name="patientAge" placeholder="Enter patient's age">
+            <div class="main-content">
+                <div class="container">
+                    <label for="xrayImage">Upload Chest X-ray Image:</label>
+                    <input type="file" id="xrayImage" name="xrayImage" onchange="loadFile(event)">
+                    <div class="image-placeholder">
+                        <img id="output" width="500" />
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="patientData">
+                        <tbody>
+                            <tr>
+                                <td>ID</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Age</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Gender</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table id="diseaseLikelihood">
+                        <thead>
+                            <tr>
+                                <th>Diseases</th>
+                                <th>Probability</th>
+                                <th>Yes/No</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Atelectasis</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cardiomegaly</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Consolidation</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Edema</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Effusion</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class "form-group">
-                <label for="patientSex">Sex:</label>
-                <input type="text" id="patientSex" name="patientSex" placeholder="Enter patient's sex">
-            </div>
-            <div class="form-group">
-                <label for="scanDetails">Scan Details:</label>
-                <textarea id="scanDetails" name="scanDetails" rows="4" placeholder="Enter details of the scan"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="diseases">Diseases Associated with the Scan:</label>
-                <textarea id="diseases" name="diseases" rows="4" placeholder="Enter associated diseases, separated by commas"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="xrayImage">Upload Chest X-ray Image:</label>
-                <input type="file" id="xrayImage" name="xrayImage">
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Submit">
-            </div>
-        </form>
-    </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>S.No.</th>
-                    <th>Diseases</th>
-                    <th>Probability</th>
-                    <th>Yes/No</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>5</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="image-placeholder">
-        <img src="https://i.ibb.co/bmmvn6Z/image-placeholder.jpg" alt="Image Placeholder">
-    </div>
-</body>
-</html>
+
+            <script>
+                var loadFile = function(event) {
+                    var image = document.getElementById('output');
+                    image.src = URL.createObjectURL(event.target.files[0]);
+                };
+            </script>
+        </body>
+    </html>
