@@ -90,13 +90,25 @@
 
                 .image-placeholder img {
                     max-width: 100%;
-                    height: auto;
+                    height: 600px;
+                    width: 600px;
+                    box-shadow:inset 0px 0px 0px 1px black;
                 }
 
                 #patientData {
                     margin-bottom: 50px;
                 }
+
+                #diseases {
+                    text-align: left;
+                }
             </style>
+            <script>
+                var loadFile = function(event) {
+                    var image = document.getElementById('output');
+                    image.src = URL.createObjectURL(event.target.files[0]);
+                };
+            </script>
         </head>
         <body>
             <div class="header">
@@ -105,74 +117,88 @@
             <div class="main-content">
                 <div class="container">
                     <label for="xrayImage">Upload Chest X-ray Image:</label>
-                    <input type="file" id="xrayImage" name="xrayImage" onchange="loadFile(event)">
+                    <input type="file" id="choose" name="xrayImage" onchange="loadFile(event)">
+                    <input type="submit" id="submit">
                     <div class="image-placeholder">
                         <img id="output" width="500" />
                     </div>
                 </div>
-
                 <div class="table-container">
+                    <label for="xrayImage">Patient Information:</label>
                     <table id="patientData">
                         <tbody>
                             <tr>
-                                <td>ID</td>
-                                <td></td>
+                                <td id="diseases">Patient ID</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Age</td>
-                                <td></td>
+                                <td id="diseases">Patient Name</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Gender</td>
-                                <td></td>
+                                <td id="diseases">Patient Sex</td>
+                                <td>TODO</td>
+                            </tr>
+                            <tr>
+                                <td id="diseases">Patient Birth Date</td>
+                                <td>TODO</td>
+                            </tr>
+                            <tr>
+                                <td id="diseases">Acquisition Date</td>
+                                <td>TODO</td>
+                            </tr>
+                            <tr>
+                                <td id="diseases">View Position</td>
+                                <td>TODO</td>
+                            </tr>
+                            <tr>
+                                <td id="diseases">Patient Orientation</td>
+                                <td>TODO</td>
+                            </tr>
+                            <tr>
+                                <td id="diseases">Patient Age at Time of Acquisition</td>
+                                <td>TODO</td>
                             </tr>
                         </tbody>
                     </table>
-
+                    <label for="xrayImage">Model Output:</label>
                     <table id="diseaseLikelihood">
                         <thead>
                             <tr>
-                                <th>Diseases</th>
+                                <th id="diseases">Diseases</th>
                                 <th>Probability</th>
-                                <th>Yes/No</th>
+                                <th>Actual</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Atelectasis</td>
-                                <td></td>
-                                <td></td>
+                                <td id="diseases">Atelectasis</td>
+                                <td>TODO</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Cardiomegaly</td>
-                                <td></td>
-                                <td></td>
+                                <td id="diseases">Cardiomegaly</td>
+                                <td>TODO</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Consolidation</td>
-                                <td></td>
-                                <td></td>
+                                <td id="diseases">Consolidation</td>
+                                <td>TODO</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Edema</td>
-                                <td></td>
-                                <td></td>
+                                <td id="diseases">Edema</td>
+                                <td>TODO</td>
+                                <td>TODO</td>
                             </tr>
                             <tr>
-                                <td>Effusion</td>
-                                <td></td>
-                                <td></td>
+                                <td id="diseases">Effusion</td>
+                                <td>TODO</td>
+                                <td>TODO</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
-            <script>
-                var loadFile = function(event) {
-                    var image = document.getElementById('output');
-                    image.src = URL.createObjectURL(event.target.files[0]);
-                };
-            </script>
         </body>
     </html>
