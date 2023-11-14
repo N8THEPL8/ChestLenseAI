@@ -8,7 +8,7 @@ document.querySelector('form').addEventListener('submit', async function (e) {
     });
 
     const result = await response.json();
-    
+
 
     const p_name = document.getElementById('p_name');
     p_name.innerHTML = `${result.Patient_Name}`;
@@ -74,3 +74,12 @@ document.querySelector('form').addEventListener('submit', async function (e) {
 
     const response3 = await fetch('/deleteimage');
 });
+
+var loadFile = function (event) {
+    var image = document.getElementById('output');
+    image.src = URL.createObjectURL(event.target.files[0]);
+};
+
+function eraseText() {
+    document.getElementById("output2").value = "";
+}
