@@ -71,6 +71,7 @@
                     width: 100%;
                     border-collapse: collapse;
                     margin-top: 10px;
+                    table-layout: fixed;
                 }
 
                 th, td {
@@ -95,20 +96,20 @@
                     box-shadow:inset 0px 0px 0px 1px black;
                 }
 
-                #patientData {
+                #patientData, #diseaseLikelihood {
                     margin-bottom: 50px;
                 }
 
                 #diseases {
                     text-align: left;
+                    width: 50%;
+                }
+
+                input[type=submit] {
+                    width: 80px;
+                    height: 20px;
                 }
             </style>
-            <script>
-                var loadFile = function(event) {
-                    var image = document.getElementById('output');
-                    image.src = URL.createObjectURL(event.target.files[0]);
-                };
-            </script>
         </head>
         <body>
             <div class="header">
@@ -200,6 +201,9 @@
                             </tr>
                         </tbody>
                     </table>
+                    <label for="commentBox">Comments:</label>
+                    <textarea id="output2"></textarea>
+                    <input type="submit" value="Submit" onclick="javascript:eraseText();">
                 </div>
             </div>
             <script src="{{ url_for('static', filename='index.js') }}"></script>
