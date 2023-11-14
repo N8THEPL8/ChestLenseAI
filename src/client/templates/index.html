@@ -117,10 +117,12 @@
             <div class="main-content">
                 <div class="container">
                     <label for="xrayImage">Upload Chest X-ray Image:</label>
-                    <input type="file" id="choose" name="xrayImage" onchange="loadFile(event)">
-                    <input type="submit" id="submit">
+                    <form action="/upload" method="post" enctype="multipart/form-data">
+                        <input type="file"  name="xrayImage">
+                        <input type="submit" value="Submit">
+                    </form>
                     <div class="image-placeholder">
-                        <img id="output" width="500" />
+                        <img id="output" src="" width="500"/>
                     </div>
                 </div>
                 <div class="table-container">
@@ -129,35 +131,35 @@
                         <tbody>
                             <tr>
                                 <td id="diseases">Patient ID</td>
-                                <td>TODO</td>
+                                <td id="p_id"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Patient Name</td>
-                                <td>TODO</td>
+                                <td id="p_name"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Patient Sex</td>
-                                <td>TODO</td>
+                                <td id="p_sex"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Patient Birth Date</td>
-                                <td>TODO</td>
+                                <td id="p_bod"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Acquisition Date</td>
-                                <td>TODO</td>
+                                <td id="p_ad"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">View Position</td>
-                                <td>TODO</td>
+                                <td id="p_pos"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Patient Orientation</td>
-                                <td>TODO</td>
+                                <td id="p_orient"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Patient Age at Time of Acquisition</td>
-                                <td>TODO</td>
+                                <td id="p_age"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -173,32 +175,33 @@
                         <tbody>
                             <tr>
                                 <td id="diseases">Atelectasis</td>
-                                <td>TODO</td>
-                                <td>TODO</td>
+                                <td id="ate_prob"></td>
+                                <td id="ate_actual"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Cardiomegaly</td>
-                                <td>TODO</td>
-                                <td>TODO</td>
+                                <td id="car_prob"></td>
+                                <td id="car_actual"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Consolidation</td>
-                                <td>TODO</td>
-                                <td>TODO</td>
+                                <td id="con_prob"></td>
+                                <td id="con_actual"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Edema</td>
-                                <td>TODO</td>
-                                <td>TODO</td>
+                                <td id="ede_prob"></td>
+                                <td id="ede_actual"></td>
                             </tr>
                             <tr>
                                 <td id="diseases">Effusion</td>
-                                <td>TODO</td>
-                                <td>TODO</td>
+                                <td id="eff_prob"></td>
+                                <td id="eff_actual"></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            <script src="{{ url_for('static', filename='index.js') }}"></script>
         </body>
     </html>
