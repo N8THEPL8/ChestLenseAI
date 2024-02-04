@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for
 import os
 import json
 from backend import dcm_to_json
@@ -10,9 +10,26 @@ app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
 
 file_name=""
 
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Add your login logic here
+        # If login is successful, redirect to index
+        return redirect(url_for('doctor'))
+    # Render the login page
+    return render_template('login.html')
 
-@app.route("/") 
-def home():
+@app.route('/doctor', methods=['GET', 'POST'])
+def doctor():
+    if request.method == 'POST':
+        # Add your login logic here
+        # If login is successful, redirect to index
+        return redirect(url_for('index'))
+    # Render the login page
+    return render_template('doctor.html')
+
+@app.route("/index") 
+def index():
 	return render_template("index.html")
 
 @app.route("/upload", methods=['POST'])
@@ -29,17 +46,14 @@ def upload():
             print(result)
             os.remove(file_path)
             return result
-        
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-
 @app.route('/fetchimage')
 def fetch_image():
     return jsonify({"filename": "scaled_image.jpg"})
-
 
 @app.route('/deleteimage')
 def delete_image():
@@ -47,7 +61,6 @@ def delete_image():
      file_path = file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
      os.remove(file_path)
      return {"true": True}
-
 
 if __name__ == "__main__":
     app.run(debug=True)
