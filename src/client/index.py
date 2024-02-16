@@ -12,12 +12,13 @@ file_name=""
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
-        # Add your login logic here
-        # If login is successful, redirect to index
-        return redirect(url_for('doctor'))
-    # Render the login page
-    return render_template('login.html')
+        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+            error = 'Invalid Credentials. Please try again.'
+        else:
+            return redirect(url_for('index'))
+    return render_template('login.html', error=error)
 
 @app.route('/doctor', methods=['GET', 'POST'])
 def doctor():
