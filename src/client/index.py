@@ -2,23 +2,31 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 import os
 import json
 from backend import dcm_to_json
+from firebase import firebase
 
 app = Flask(__name__)
+
+firebase = firebase.FirebaseApplication('https://ai-for-chest-x-ray-default-rtdb.firebaseio.com', None)
+
+@app.route("/")
+def login():
+  result = firebase.get('/doctors', None)
+  return str(result)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
 
 file_name=""
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
-            error = 'Invalid Credentials. Please try again.'
-        else:
-            return redirect(url_for('index'))
-    return render_template('login.html', error=error)
+# @app.route('/', methods=['GET', 'POST'])
+# def login():
+#     error = None
+#     if request.method == 'POST':
+#         if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+#             error = 'Invalid Credentials. Please try again.'
+#         else:
+#             return redirect(url_for('index'))
+#     return render_template('login.html', error=error)
 
 @app.route('/doctor', methods=['GET', 'POST'])
 def doctor():
