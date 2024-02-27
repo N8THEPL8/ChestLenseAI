@@ -14,8 +14,12 @@ def login():
         if request.form['username'] != '18group' or request.form['password'] != '18group':
             error = 'Invalid Credentials. Please try again.'
         else:
-            return redirect(url_for('index'))
+            return redirect(url_for('doctor'))
     return render_template('login.html', error=error)
+
+@app.route("/doctor") 
+def doctor():
+	return render_template("doctor.html")
 
 @app.route("/index") 
 def index():
@@ -49,4 +53,4 @@ def delete_image():
     return {"true": True}
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='localhost', port=9874, debug=True)
