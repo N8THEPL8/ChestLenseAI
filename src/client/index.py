@@ -1,20 +1,38 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for
 from backend import dcm_to_json
 import os
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://sql5688745:t11rn2ntwf@sql5.freesqldatabase.com:3306/sql5688745'
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    __tablename__ = 'test_doctor'  # Name of the existing table in the database
+    username = db.Column(db.String(100), primary_key=True)
+    password = db.Column(db.String(100), nullable=False)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != '18group' or request.form['password'] != '18group':
-            error = 'Invalid Credentials. Please try again.'
+        existing_user = User.query.filter_by(username=request.form['username'], password=request.form['password']).first()
+
+        if existing_user:
+             return redirect(url_for('doctor'))
         else:
-            return redirect(url_for('doctor'))
+             error = 'NOT WORKING YUVI'
+
+        #return render_template('login.html', error=error)
+        #if request.form['username'] != '18group' or request.form['password'] != '18group':
+         #   error = 'Invalid Credentials. Please try again.'
+        #else:
+         #   return redirect(url_for('doctor'))
     return render_template('login.html', error=error)
 
 @app.route("/doctor") 
