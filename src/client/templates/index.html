@@ -1,221 +1,201 @@
 <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Chest AI X-ray Report</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 20px;
-                    display: flex;
-                    flex-direction: column;
-                    background-color: #f7f7f7;
-                }
-
-                .header {
-                    width: 100%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: #3498db;
-                    color: #fff;
-                    padding: 20px 0;
-                }
-
-                h1 {
-                    font-size: 24px;
-                }
-
-                .main-content {
-                    display: flex;
-                    justify-content: center;
-                }
-
-                .container, .table-container {
-                    width: 50%;
-                    display: flex;
-                    flex-direction: column;
-                    background-color: #fff;
-                    padding: 20px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    margin: 20px;
-                }
-
-                h1 {
-                    text-align: center;
-                }
-
-                .form-group {
-                    margin-bottom: 20px;
-                }
-
-                label {
-                    display: block;
-                    font-weight: bold;
-                }
-
-                input[type="file"], input[type="text"] {
-                    width: 100%;
-                    padding: 10px;
-                    margin: 5px 0;
-                }
-
-                textarea {
-                    width: 100%;
-                    padding: 10px;
-                    margin: 5px 0;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    table-layout: fixed;
-                }
-
-                th, td {
-                    border: 1px solid #ccc;
-                    padding: 10px;
-                    text-align: center;
-                }
-
-                th {
-                    background-color: #f2f2f2;
-                }
-
-                .image-placeholder {
-                    text-align: center;
-                    margin-top: 20px;
-                }
-
-                .image-placeholder img {
-                    max-width: 100%;
-                    height: 600px;
-                    width: 600px;
-                    box-shadow:inset 0px 0px 0px 1px black;
-                }
-
-                #patientData, #diseaseLikelihood {
-                    margin-bottom: 50px;
-                }
-
-                #diseases {
-                    text-align: left;
-                    width: 50%;
-                }
-
-                input[type=submit] {
-                    width: 80px;
-                    height: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>Chest AI X-ray Report</h1>
+<html>
+<head>
+<title>AI For Chest X-ray - Patient</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        background-color: #f7f7f7;
+    }
+    .header {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #3498db;
+        color: #fff;
+        padding: 20px 0;
+    }
+    h1 {
+        font-size: 24px;
+    }
+    .main-content {
+        display: flex;
+        justify-content: center;
+    }
+    .container, .table-container {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+    h1 {
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    label {
+        display: block;
+        font-weight: bold;
+    }
+    input[type="file"], input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+    }
+    textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        table-layout: fixed;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .image-placeholder {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .image-placeholder img {
+        max-width: 100%;
+        height: 600px;
+        width: 600px;
+        box-shadow:inset 0px 0px 0px 1px black;
+    }
+    #patientData, #diseaseLikelihood {
+        margin-bottom: 50px;
+    }
+    #diseases {
+        text-align: left;
+        width: 50%;
+    }
+    input[type=submit] {
+        width: 80px;
+        height: 20px;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI For Chest X-ray</h1>
+    </div>
+    <div class="main-content">
+        <div class="container">
+            <label for="xrayImage">Upload Chest X-ray Image:</label>
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file"  name="xrayImage">
+                <input type="submit" value="Prebuilt">
+                <input type="submit" value="Our Model">
+            </form>
+            <div class="image-placeholder">
+                <img id="output" src="" width="500"/>
             </div>
-            <div class="main-content">
-                <div class="container">
-                    <label for="xrayImage">Upload Chest X-ray Image:</label>
-                    <form action="/upload" method="post" enctype="multipart/form-data">
-                        <input type="file"  name="xrayImage">
-                        <input type="submit" value="Submit">
-                    </form>
-                    <div class="image-placeholder">
-                        <img id="output" src="" width="500"/>
-                    </div>
-                    <div class="radio-buttons">
-                        <label for="radio1">Original</label>
-                        <input type="radio" id="radio1" name="options" value="option1">
-                    
-                        <label for="radio2">Bounding Box</label>
-                        <input type="radio" id="radio2" name="options" value="option2">
-                    
-                        <label for="radio3">Colour Gradience</label>
-                        <input type="radio" id="radio3" name="options" value="option3">
-                    </div>
-                </div>
-                <div class="table-container">
-                    <label for="xrayImage">Patient Information:</label>
-                    <table id="patientData">
-                        <tbody>
-                            <tr>
-                                <td id="diseases">Patient ID</td>
-                                <td id="p_id"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Patient Name</td>
-                                <td id="p_name"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Patient Sex</td>
-                                <td id="p_sex"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Patient Birth Date</td>
-                                <td id="p_bod"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Acquisition Date</td>
-                                <td id="p_ad"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">View Position</td>
-                                <td id="p_pos"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Patient Orientation</td>
-                                <td id="p_orient"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Patient Age at Time of Acquisition</td>
-                                <td id="p_age"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <label for="xrayImage">Model Output:</label>
-                    <table id="diseaseLikelihood">
-                        <thead>
-                            <tr>
-                                <th id="diseases">Diseases</th>
-                                <th>Probability</th>
-                                <th>Actual</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="diseases">Atelectasis</td>
-                                <td id="ate_prob"></td>
-                                <td id="ate_actual"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Cardiomegaly</td>
-                                <td id="car_prob"></td>
-                                <td id="car_actual"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Consolidation</td>
-                                <td id="con_prob"></td>
-                                <td id="con_actual"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Edema</td>
-                                <td id="ede_prob"></td>
-                                <td id="ede_actual"></td>
-                            </tr>
-                            <tr>
-                                <td id="diseases">Effusion</td>
-                                <td id="eff_prob"></td>
-                                <td id="eff_actual"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <label for="commentBox">Comments:</label>
-                    <textarea id="output2"></textarea>
-                    <input type="submit" value="Submit" onclick="javascript:eraseText();">
-                </div>
+            <div class="radio-buttons">
+                <label for="radio1">Original</label>
+                <input type="radio" id="radio1" name="options" value="option1">
+                <label for="radio3">Colour Gradience</label>
+                <input type="radio" id="radio3" name="options" value="option2">
             </div>
-            <script src="{{ url_for('static', filename='index.js') }}"></script>
-        </body>
-    </html>
+        </div>
+        <div class="table-container">
+            <label for="xrayImage">Patient Information:</label>
+            <table id="patientData">
+                <tbody>
+                    <tr>
+                        <td id="diseases">Patient ID</td>
+                        <td id="p_id"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Patient Name</td>
+                        <td id="p_name"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Patient Sex</td>
+                        <td id="p_sex"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Patient Birth Date</td>
+                        <td id="p_bod"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Acquisition Date</td>
+                        <td id="p_ad"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">View Position</td>
+                        <td id="p_pos"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Patient Orientation</td>
+                        <td id="p_orient"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Patient Age at Time of Acquisition</td>
+                        <td id="p_age"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <label for="xrayImage">Model Output:</label>
+            <table id="diseaseLikelihood">
+                <thead>
+                    <tr>
+                        <th id="diseases">Diseases</th>
+                        <th>Probability</th>
+                        <th>Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="diseases">Atelectasis</td>
+                        <td id="ate_prob"></td>
+                        <td id="ate_actual"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Cardiomegaly</td>
+                        <td id="car_prob"></td>
+                        <td id="car_actual"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Consolidation</td>
+                        <td id="con_prob"></td>
+                        <td id="con_actual"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Edema</td>
+                        <td id="ede_prob"></td>
+                        <td id="ede_actual"></td>
+                    </tr>
+                    <tr>
+                        <td id="diseases">Effusion</td>
+                        <td id="eff_prob"></td>
+                        <td id="eff_actual"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <label for="commentBox">Comments:</label>
+            <textarea id="output2"></textarea>
+            <input type="submit" value="Submit" onclick="javascript:eraseText();">
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>
