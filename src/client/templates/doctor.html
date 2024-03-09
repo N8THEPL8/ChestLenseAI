@@ -56,7 +56,7 @@
             <td>{{ loop.index }}</td>
             <td>{{ patient.p_id }}</td>
             <td>{{ patient.p_name }}</td>
-            <td><a class='btn btn-primary' href="{{ url_for('index') }}">View</a></td>
+            <td><a class='btn btn-primary' href="{{ url_for('index', patient_id=patient.p_id) }}">View</a></td>
         </tr>
         {% endfor %}
     </tbody>

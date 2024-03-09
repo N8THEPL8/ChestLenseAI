@@ -9,7 +9,6 @@ document.querySelector('form').addEventListener('submit', async function (e) {
 
     const result = await response.json();
 
-
     const p_name = document.getElementById('p_name');
     p_name.innerHTML = `${result.Patient_Name}`;
 
@@ -21,7 +20,6 @@ document.querySelector('form').addEventListener('submit', async function (e) {
 
     const p_bod = document.getElementById('p_bod');
     p_bod.innerHTML = `${result.Patient_Birth_Date}`;
-
 
     const p_ad = document.getElementById('p_ad');
     p_ad.innerHTML = `${result.Acquisition_Date}`;
