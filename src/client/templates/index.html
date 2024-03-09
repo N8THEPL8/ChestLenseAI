@@ -104,6 +104,9 @@
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <input type="file"  name="xrayImage">
                 <input type="submit" value="Prebuilt">
+            </form>
+            <form action="/upload-our-model" method="post" enctype="multipart/form-data">
+                <input type="file"  name="xrayImage2">
                 <input type="submit" value="Our Model">
             </form>
             <div class="image-placeholder">
@@ -111,9 +114,9 @@
             </div>
             <div class="radio-buttons">
                 <label for="radio1">Original</label>
-                <input type="radio" id="radio1" name="options" value="option1">
-                <label for="radio3">Colour Gradience</label>
-                <input type="radio" id="radio3" name="options" value="option2">
+                <input type="radio" id="radio1" name="options" value="option1" checked>
+                <label for="radio2">Colour Gradience</label>
+                <input type="radio" id="radio2" name="options" value="option2">
             </div>
         </div>
         <div class="table-container">
@@ -194,6 +197,9 @@
             <label for="commentBox">Comments:</label>
             <textarea id="output2"></textarea>
             <input type="submit" value="Submit" onclick="javascript:eraseText();">
+            {% for scan in scans %}
+                <p>{{ scan.s_comment }}</p>
+            {% endfor %}
         </div>
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>

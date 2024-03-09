@@ -2,6 +2,15 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 from backend import dcm_to_json
 import os
 from flask_sqlalchemy import SQLAlchemy
+import json
+
+import pydicom
+from pydicom.filebase import DicomBytesIO
+def dicom_to_binary(file_path):
+    dicom_image = pydicom.dcmread(file_path)
+    dicom_byte_arr = DicomBytesIO()
+    dicom_image.save_as(dicom_byte_arr, write_like_original=True)
+    return dicom_byte_arr.parent.getvalue()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -26,28 +35,12 @@ class Patient(db.Model):
     p_sex = db.Column(db.String(100), nullable=False)
     p_birthdate = db.Column(db.String(100), nullable=False)
 
-class Scan(db.Model):
-    __tablename__ = 'scan_table'
-    s_id = db.Column(db.String(100), primary_key=True)
-    p_id = db.Column(db.String(100), db.ForeignKey('patient_table.p_id'))
-    s_date = db.Column(db.String(100), nullable=False)
-    s_position = db.Column(db.String(100), nullable=False)
-    s_orientation = db.Column(db.String(100), nullable=False)
-    s_age = db.Column(db.String(100), nullable=False)
-    s_p_atelactasis = db.Column(db.String(100), nullable=False)
-    s_a_atelactasis = db.Column(db.String(100), nullable=False)
-    s_p_cardiomegaly = db.Column(db.String(100), nullable=False)
-    s_a_cardiomegaly = db.Column(db.String(100), nullable=False)
-    s_p_consolidation = db.Column(db.String(100), nullable=False)
-    s_a_consolidation = db.Column(db.String(100), nullable=False)
-    s_p_edema = db.Column(db.String(100), nullable=False)
-    s_a_edema = db.Column(db.String(100), nullable=False)
-    s_p_effusion = db.Column(db.String(100), nullable=False)
-    s_a_effusion = db.Column(db.String(100), nullable=False)
-    comments = db.Column(db.String(500), nullable=False)
-    s_scan = db.Column(db.String(100), nullable=False)
-    s_c_scan = db.Column(db.String(100), nullable=False)
-    s_comments = db.Column(db.String(500), nullable=False)
+class NewScan(db.Model):
+    __tablename__ = 'new_scan_table'
+    s_id = db.Column(db.String(20), primary_key=True)
+    p_id = db.Column(db.String(20), db.ForeignKey('patient_table.p_id'))
+    # s_dicom = db.Column(db.LargeBinary, nullable=False)
+    s_comment = db.Column(db.String(100), nullable=False)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -66,9 +59,13 @@ def doctor():
         return render_template("doctor.html", patients=patients)
     return redirect(url_for('login'))
 
-@app.route("/index") 
-def index():
-	return render_template("index.html")
+@app.route('/index/<patient_id>')
+def index(patient_id):
+    patient = Patient.query.get(patient_id)
+    if patient:
+        scans = NewScan.query.filter_by(p_id=patient_id).all()
+        return render_template('index.html', patient=patient, scans=scans)
+    return redirect(url_for('doctor'))
 
 @app.route("/upload", methods=['POST'])
 def upload():
@@ -76,14 +73,31 @@ def upload():
         image = request.files['xrayImage']
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+            # binary_data = dicom_to_binary(file_path)
             image.save(file_path)
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result = dcm_to_json(file_path, weights, mimix_csv)
             os.remove(file_path)
+            result2 = json.loads(result)
+            print(result2)
+            print(file_path)
+
+            existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
+            if existing_scan is not None:
+                pass # duplicate entry causes issues
+            else:
+                new_scan = NewScan(
+                    s_id=result2['Study_ID'],
+                    p_id=result2['Patient_ID'],
+                    # s_dicom=binary_data,
+                    s_comment='This is a new comment2.'
+                )
+                db.session.add(new_scan)
+                db.session.commit()
             return result
 
-@app.route('/uploads/<filename>')
+@app.route('/index/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
