@@ -64,6 +64,7 @@ def index(patient_id):
     patient = Patient.query.get(patient_id)
     if patient:
         scans = NewScan.query.filter_by(p_id=patient_id).all()
+        print(scans)
         return render_template('index.html', patient=patient, scans=scans)
     return redirect(url_for('doctor'))
 
@@ -75,6 +76,8 @@ def upload():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
             # binary_data = dicom_to_binary(file_path)
             image.save(file_path)
+            # with open(file_path, 'rb') as file:
+            #     image_data = file.read()
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result = dcm_to_json(file_path, weights, mimix_csv)
@@ -90,7 +93,7 @@ def upload():
                 new_scan = NewScan(
                     s_id=result2['Study_ID'],
                     p_id=result2['Patient_ID'],
-                    # s_dicom=binary_data,
+                    # s_dicom=image_data,
                     s_comment='This is a new comment2.'
                 )
                 db.session.add(new_scan)

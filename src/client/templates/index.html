@@ -101,13 +101,17 @@
     <div class="main-content">
         <div class="container">
             <label for="xrayImage">Upload Chest X-ray Image:</label>
-            <form action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file"  name="xrayImage">
-                <input type="submit" value="Prebuilt">
-            </form>
-            <form action="/upload-our-model" method="post" enctype="multipart/form-data">
-                <input type="file"  name="xrayImage2">
-                <input type="submit" value="Our Model">
+            <form id="uploadForm" method="post" enctype="multipart/form-data">
+                <br>
+                <select id="uploadedImages" name="uploadedImages">
+                    <option value="">Select an image</option>
+                    {% for scan in scans %}
+                        <option value="{{ scan.s_dicom }}">{{ scan.s_id }}</option>
+                    {% endfor %}
+                </select>
+                <input type="file" id="xrayImage" name="xrayImage">
+                <button type="button" onclick="submitForm('/upload')">Prebuilt</button>
+                <button type="button" onclick="submitForm('/upload-our-model')">Our Model</button>
             </form>
             <div class="image-placeholder">
                 <img id="output" src="" width="500"/>
@@ -203,5 +207,21 @@
         </div>
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <script>
+        function submitForm(action) {
+            // Determine which image option was selected
+            var selectedImage = document.getElementById("uploadedImages").value;
+            // If no image selected from dropdown, use file upload option
+            var imageFile = selectedImage ? selectedImage : document.getElementById("xrayImage").files[0];
+            
+            // Create FormData object and append selected image
+            var formData = new FormData();
+            formData.append("xrayImage", imageFile);
+            
+            // Set form action and submit
+            document.getElementById("uploadForm").action = action;
+            document.getElementById("uploadForm").submit();
+        }
+    </script>
 </body>
 </html>
