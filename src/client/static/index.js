@@ -38,32 +38,17 @@ async function handleFormSubmit(e, url) {
     const p_age = document.getElementById('p_age');
     p_age.innerHTML = `${result.Patient_Age_at_Time_of_Acquisition}`;
 
-    const ate_prob = document.getElementById('ate_prob');
-    ate_prob.innerHTML = `${result.Model_Atelectasis}%`;
-
     const ate_actual = document.getElementById('ate_actual');
     ate_actual.innerHTML = `${result.Actual_Atelectasis}`;
-
-    const car_prob = document.getElementById('car_prob');
-    car_prob.innerHTML = `${result.Model_Cardiomegaly}%`;
 
     const car_actual = document.getElementById('car_actual');
     car_actual.innerHTML = `${result.Actual_Cardiomegaly}`;
 
-    const con_prob = document.getElementById('con_prob');
-    con_prob.innerHTML = `${result.Model_Consolidation}%`;
-
     const con_actual = document.getElementById('con_actual');
     con_actual.innerHTML = `${result.Actual_Consolidation}`;
 
-    const ede_prob = document.getElementById('ede_prob');
-    ede_prob.innerHTML = `${result.Model_Edema}%`;
-
     const ede_actual = document.getElementById('ede_actual');
     ede_actual.innerHTML = `${result.Actual_Edema}`;
-
-    const eff_prob = document.getElementById('eff_prob');
-    eff_prob.innerHTML = `${result.Model_Effusion}%`;
 
     const eff_actual = document.getElementById('eff_actual');
     eff_actual.innerHTML = `${result.Actual_Effusion}`;

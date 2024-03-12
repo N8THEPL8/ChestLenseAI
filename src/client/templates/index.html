@@ -103,6 +103,12 @@
 
             <label for="xrayImage">Upload Chest X-ray Image:</label>
             <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data">
+                <select id="uploadedImages" name="uploadedImages">
+                    <option value="">Select an image</option>
+                    {% for scan in scans %}
+                        <option value="{{ scan.s_dicom }}">{{ scan.s_id }}</option>
+                    {% endfor %}
+                </select>
                 <input type="file" id="xrayImage" name="xrayImage">
                 <input type="submit" name="modelType" value="Prebuilt">
                 <input type="submit" name="modelType" value="Our Model">
@@ -161,34 +167,28 @@
                 <thead>
                     <tr>
                         <th id="diseases">Diseases</th>
-                        <th>Probability</th>
                         <th>Actual</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td id="diseases">Atelectasis</td>
-                        <td id="ate_prob"></td>
                         <td id="ate_actual"></td>
                     </tr>
                     <tr>
                         <td id="diseases">Cardiomegaly</td>
-                        <td id="car_prob"></td>
                         <td id="car_actual"></td>
                     </tr>
                     <tr>
                         <td id="diseases">Consolidation</td>
-                        <td id="con_prob"></td>
                         <td id="con_actual"></td>
                     </tr>
                     <tr>
                         <td id="diseases">Edema</td>
-                        <td id="ede_prob"></td>
                         <td id="ede_actual"></td>
                     </tr>
                     <tr>
                         <td id="diseases">Effusion</td>
-                        <td id="eff_prob"></td>
                         <td id="eff_actual"></td>
                     </tr>
                 </tbody>
