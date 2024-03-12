@@ -1,8 +1,13 @@
-document.querySelector('form').addEventListener('submit', async function (e) {
+document.querySelector('#uploadForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    const formData = new FormData(this);
+    const action = e.submitter.value === 'Prebuilt' ? '/upload' : '/upload-our-model';
+    await handleFormSubmit(e, action);
+});
 
-    const response = await fetch('/upload', {
+async function handleFormSubmit(e, url) {
+    const formData = new FormData(e.target);
+
+    const response = await fetch(url, {
         method: 'POST',
         body: formData
     });
@@ -71,7 +76,7 @@ document.querySelector('form').addEventListener('submit', async function (e) {
     document.getElementById("output").src = `uploads\\${result2.filename}`;
 
     const response3 = await fetch('/deleteimage');
-});
+}
 
 var loadFile = function (event) {
     var image = document.getElementById('output');
