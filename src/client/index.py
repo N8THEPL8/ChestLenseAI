@@ -4,14 +4,6 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-# import pydicom
-# from pydicom.filebase import DicomBytesIO
-# def dicom_to_binary(file_path):
-#     dicom_image = pydicom.dcmread(file_path)
-#     dicom_byte_arr = DicomBytesIO()
-#     dicom_image.save_as(dicom_byte_arr, write_like_original=True)
-#     return dicom_byte_arr.parent.getvalue()
-
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
@@ -39,8 +31,8 @@ class NewScan(db.Model):
     __tablename__ = 'new_scan_table'
     s_id = db.Column(db.String(100), primary_key=True)
     p_id = db.Column(db.String(100), db.ForeignKey('patient_table.p_id'))
-    # s_dicom = db.Column(db.LargeBinary, nullable=False)
-    s_comment = db.Column(db.String(100), nullable=False)
+    s_dicom = db.Column(db.LargeBinary, nullable=True)
+    s_comment = db.Column(db.String(100), nullable=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -64,7 +56,6 @@ def index(patient_id):
     patient = Patient.query.get(patient_id)
     if patient:
         scans = NewScan.query.filter_by(p_id=patient_id).all()
-        print(scans)
         return render_template('index.html', patient=patient, scans=scans)
     return redirect(url_for('doctor'))
 
@@ -75,17 +66,17 @@ def upload():
         image = request.files['xrayImage']
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            # binary_data = dicom_to_binary(file_path)
             image.save(file_path)
-            # with open(file_path, 'rb') as file:
-            #     image_data = file.read()
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result = dcm_to_json(file_path, weights, mimix_csv)
+
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
+            with open(file_path2, 'rb') as file:
+                jpg = file.read()
+            
             os.remove(file_path)
             result2 = json.loads(result)
-            print(result2)
-            print(file_path)
             existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
             if existing_scan is not None:
                 pass # duplicate entry causes issues
@@ -93,7 +84,7 @@ def upload():
                 new_scan = NewScan(
                     s_id=result2['Study_ID'],
                     p_id=result2['Patient_ID'],
-                    s_comment='Mar 11, 9:46.'
+                    s_dicom=jpg
                 )
                 db.session.add(new_scan)
                 db.session.commit()
@@ -107,17 +98,17 @@ def upload_our_model():
         image = request.files['xrayImage']
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            # binary_data = dicom_to_binary(file_path)
             image.save(file_path)
-            # with open(file_path, 'rb') as file:
-            #     image_data = file.read()
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result = dcm_to_json(file_path, weights, mimix_csv)
+
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
+            with open(file_path2, 'rb') as file:
+                jpg = file.read()
+            
             os.remove(file_path)
             result2 = json.loads(result)
-            print(result2)
-            print(file_path)
             existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
             if existing_scan is not None:
                 pass # duplicate entry causes issues
@@ -125,7 +116,7 @@ def upload_our_model():
                 new_scan = NewScan(
                     s_id=result2['Study_ID'],
                     p_id=result2['Patient_ID'],
-                    s_comment='Mar 11, 9:46'
+                    s_dicom=jpg
                 )
                 db.session.add(new_scan)
                 db.session.commit()
