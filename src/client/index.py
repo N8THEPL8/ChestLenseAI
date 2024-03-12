@@ -34,6 +34,14 @@ class NewScan(db.Model):
     s_dicom = db.Column(db.LargeBinary, nullable=True)
     s_comment = db.Column(db.String(100), nullable=True)
 
+    s_name = db.Column(db.String(100), nullable=True)
+    s_sex = db.Column(db.String(100), nullable=True)
+    s_birthdate = db.Column(db.String(100), nullable=True)
+    s_acqdate = db.Column(db.String(100), nullable=True)
+    s_pos = db.Column(db.String(100), nullable=True)
+    s_orientation = db.Column(db.String(100), nullable=True)
+    s_age = db.Column(db.String(100), nullable=True)
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -77,6 +85,7 @@ def upload():
             
             os.remove(file_path)
             result2 = json.loads(result)
+            print(result2)
             existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
             if existing_scan is not None:
                 pass # duplicate entry causes issues
@@ -84,7 +93,15 @@ def upload():
                 new_scan = NewScan(
                     s_id=result2['Study_ID'],
                     p_id=result2['Patient_ID'],
-                    s_dicom=jpg
+                    s_dicom=jpg,
+
+                    s_name=result2['Patient_Name'],
+                    s_sex = result2['Patient_Sex'],
+                    s_birthdate = result2['Patient_Birth_Date'],
+                    s_acqdate = result2['Acquisition_Date'],
+                    s_pos = result2['View_Position'],
+                    s_orientation = result2['Patient_Orientation'],
+                    s_age = result2['Patient_Age_at_Time_of_Acquisition']
                 )
                 db.session.add(new_scan)
                 db.session.commit()
@@ -116,7 +133,15 @@ def upload_our_model():
                 new_scan = NewScan(
                     s_id=result2['Study_ID'],
                     p_id=result2['Patient_ID'],
-                    s_dicom=jpg
+                    s_dicom=jpg,
+
+                    s_name=result2['Patient_Name'],
+                    s_sex = result2['Patient_Sex'],
+                    s_birthdate = result2['Patient_Birth_Date'],
+                    s_acqdate = result2['Acquisition_Date'],
+                    s_pos = result2['View_Position'],
+                    s_orientation = result2['Patient_Orientation'],
+                    s_age = result2['Patient_Age_at_Time_of_Acquisition']
                 )
                 db.session.add(new_scan)
                 db.session.commit()
@@ -133,7 +158,7 @@ def fetch_image():
 @app.route('/deleteimage')
 def delete_image():
     file_path = file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
-    os.remove(file_path)
+    # os.remove(file_path)
     return {"true": True}
 
 if __name__ == "__main__":
