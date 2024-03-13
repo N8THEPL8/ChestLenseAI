@@ -100,8 +100,8 @@
     </div>
     <div class="main-content">
         <div class="container">
-
             <label for="xrayImage">Upload Chest X-ray Image:</label>
+            <!-- still only uses file input -->
             <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data">
                 <select id="uploadedImages" name="uploadedImages">
                     <option value="">Select an image</option>
@@ -113,16 +113,19 @@
                 <input type="submit" name="modelType" value="Prebuilt">
                 <input type="submit" name="modelType" value="Our Model">
             </form>
-
+            <!-- options don't work yet -->
             <div class="image-placeholder">
                 <img id="output" src="" width="500"/>
             </div>
-            <div class="radio-buttons">
-                <label for="radio1">Original</label>
-                <input type="radio" id="radio1" name="options" value="option1" checked>
-                <label for="radio2">Colour Gradience</label>
-                <input type="radio" id="radio2" name="options" value="option2">
-            </div>
+            <select id="imageOptions" name="options">
+                <option value="option1">Original</option>
+                <option value="option2">Atelectasis - Colour Gradience</option>
+                <option value="option3">Cardiomegaly - Colour Gradience</option>
+                <option value="option4">Consolidation - Colour Gradience</option>
+                <option value="option5">Edema - Colour Gradience</option>
+                <option value="option6">No Finding - Colour Gradience</option>
+                <option value="option7">Pleural Effusion - Colour Gradience</option>
+            </select>
         </div>
         <div class="table-container">
             <label for="xrayImage">Patient Information:</label>
@@ -193,6 +196,7 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- comments don't work yet -->
             <label for="commentBox">Comments:</label>
             <textarea id="output2"></textarea>
             <input type="submit" value="Submit" onclick="javascript:eraseText();">

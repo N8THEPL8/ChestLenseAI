@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
 from backend import dcm_to_json
+from backend_new import test_single_image, model, device
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -27,20 +28,22 @@ class Patient(db.Model):
     p_sex = db.Column(db.String(100), nullable=False)
     p_birthdate = db.Column(db.String(100), nullable=False)
 
+# not done
 class NewScan(db.Model):
     __tablename__ = 'new_scan_table'
     s_id = db.Column(db.String(100), primary_key=True)
     p_id = db.Column(db.String(100), db.ForeignKey('patient_table.p_id'))
     s_dicom = db.Column(db.LargeBinary, nullable=True)
-    s_comment = db.Column(db.String(100), nullable=True)
+    s_colorjpg = db.Column(db.LargeBinary, nullable=True)
+    # s_comment = db.Column(db.String(100), nullable=True)
 
-    s_name = db.Column(db.String(100), nullable=True)
-    s_sex = db.Column(db.String(100), nullable=True)
-    s_birthdate = db.Column(db.String(100), nullable=True)
-    s_acqdate = db.Column(db.String(100), nullable=True)
-    s_pos = db.Column(db.String(100), nullable=True)
-    s_orientation = db.Column(db.String(100), nullable=True)
-    s_age = db.Column(db.String(100), nullable=True)
+    # s_name = db.Column(db.String(100), nullable=True)
+    # s_sex = db.Column(db.String(100), nullable=True)
+    # s_birthdate = db.Column(db.String(100), nullable=True)
+    # s_acqdate = db.Column(db.String(100), nullable=True)
+    # s_pos = db.Column(db.String(100), nullable=True)
+    # s_orientation = db.Column(db.String(100), nullable=True)
+    # s_age = db.Column(db.String(100), nullable=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -67,6 +70,7 @@ def index(patient_id):
         return render_template('index.html', patient=patient, scans=scans)
     return redirect(url_for('doctor'))
 
+# change this once we have prebuilt
 @app.route("/upload", methods=['POST'])
 def upload():
     print('prebuilt')
@@ -83,6 +87,47 @@ def upload():
             with open(file_path2, 'rb') as file:
                 jpg = file.read()
             
+            os.remove(file_path)
+            result2 = json.loads(result)
+            existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
+            if existing_scan is not None:
+                pass # duplicate entry causes issues
+            else:
+                new_scan = NewScan(
+                    s_id=result2['Study_ID'],
+                    p_id=result2['Patient_ID'],
+                    s_dicom=jpg,
+
+                    s_name=result2['Patient_Name'],
+                    s_sex = result2['Patient_Sex'],
+                    s_birthdate = result2['Patient_Birth_Date'],
+                    s_acqdate = result2['Acquisition_Date'],
+                    s_pos = result2['View_Position'],
+                    s_orientation = result2['Patient_Orientation'],
+                    s_age = result2['Patient_Age_at_Time_of_Acquisition']
+                )
+                db.session.add(new_scan)
+                db.session.commit()
+            return result
+
+#temporarily trying new backend
+@app.route("/upload-our-model", methods=['POST'])
+def upload_our_model():
+    print('our model')
+    if 'xrayImage' in request.files:
+        image = request.files['xrayImage']
+        if image.filename != '':
+            #old way
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+            image.save(file_path)
+            weights = "densenet121-res224-mimic_ch"
+            mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
+            result = dcm_to_json(file_path, weights, mimix_csv)
+            print('res')
+            print(result)
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
+            with open(file_path2, 'rb') as file:
+                jpg = file.read()
             os.remove(file_path)
             result2 = json.loads(result)
             print(result2)
@@ -105,46 +150,15 @@ def upload():
                 )
                 db.session.add(new_scan)
                 db.session.commit()
-            return result
-
-# change this once we have our model
-@app.route("/upload-our-model", methods=['POST'])
-def upload_our_model():
-    print('our model')
-    if 'xrayImage' in request.files:
-        image = request.files['xrayImage']
-        if image.filename != '':
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            image.save(file_path)
-            weights = "densenet121-res224-mimic_ch"
-            mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
-            result = dcm_to_json(file_path, weights, mimix_csv)
-
-            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
-            with open(file_path2, 'rb') as file:
-                jpg = file.read()
             
-            os.remove(file_path)
-            result2 = json.loads(result)
-            existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
-            if existing_scan is not None:
-                pass # duplicate entry causes issues
-            else:
-                new_scan = NewScan(
-                    s_id=result2['Study_ID'],
-                    p_id=result2['Patient_ID'],
-                    s_dicom=jpg,
-
-                    s_name=result2['Patient_Name'],
-                    s_sex = result2['Patient_Sex'],
-                    s_birthdate = result2['Patient_Birth_Date'],
-                    s_acqdate = result2['Acquisition_Date'],
-                    s_pos = result2['View_Position'],
-                    s_orientation = result2['Patient_Orientation'],
-                    s_age = result2['Patient_Age_at_Time_of_Acquisition']
-                )
-                db.session.add(new_scan)
-                db.session.commit()
+            #new way
+            # filepath = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
+            # csv_file_path = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/Validation_Partial.csv"
+            # thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844747]
+            # print('helllo')
+            # original_image, grad_cam_image = test_single_image(filepath, csv_file_path, thresholds, model, device)
+            # print(original_image)
+            # print(grad_cam_image[0])
             return result
 
 @app.route('/index/uploads/<filename>')

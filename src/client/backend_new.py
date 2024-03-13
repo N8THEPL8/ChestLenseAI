@@ -1,3 +1,4 @@
+from flask import Flask
 import torch
 import torch.nn as nn
 import numpy as np
@@ -5,15 +6,23 @@ import matplotlib.pyplot as plt
 import csv
 import torchvision.transforms as transforms
 from PIL import Image
+from skimage import io
 import cv2 as cv
 import os
 import torchvision.models as models
+import base64
+import json
+import skimage.io as skio
+import io
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from tabulate import tabulate
 
-checkpoint_path = "bce_masked_adam8.pth.tar"
+app = Flask(__name__)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
+checkpoint_path = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/bce_masked_adam8.pth.tar"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def create_densenet121(num_classes):
@@ -109,7 +118,7 @@ def test_single_image(filepath, csv_file_path, thresholds, model, device):
     # Print the table
     print("\n")
     print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
-    return original_image, grad_cam_image
+    return original_image, grad_cam_image, prediction
 
 def test_single_image_no_csv(filepath, thresholds, model, device):
     # Read and preprocess the image
@@ -153,7 +162,7 @@ def test_single_image_no_csv(filepath, thresholds, model, device):
     # Print the table
     print("\n")
     print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
-    return original_image, grad_cam_image
+    return original_image, grad_cam_image, prediction
 
 def plot_images(original_image, grad_cam_image, diseaseName):
     # Create a figure with 2 subplots
@@ -169,24 +178,81 @@ def plot_images(original_image, grad_cam_image, diseaseName):
     # Display the plot
     plt.show()
 
+def image_to_base64(image_array):
+    image = Image.fromarray(np.uint8(image_array)).convert('RGB')
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='JPEG')
+    return base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+
+# Function to preprocess and convert image to byte array
+def preprocess_and_convert_to_byte_array(image_path):
+    # Preprocess the image
+    image = skio.imread(image_path)
+    RGB = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    new_image = Image.fromarray(RGB)
+    new_image = new_image.resize((256, 256))
+    # Convert to byte array
+    img_byte_arr = io.BytesIO()
+    new_image.save(img_byte_arr, format='JPEG')
+    img_byte_arr = img_byte_arr.getvalue()
+    return img_byte_arr
+
+# Function to convert byte array back to image
+def byte_array_to_image(byte_array):
+    img_byte_arr = io.BytesIO(byte_array)
+    img = Image.open(img_byte_arr)
+    return img
+
+# Test Single Image:
 model = create_densenet121(6)
 optimizer = torch.optim.Adam(model.parameters(), 0.001)
 loaded_model, loaded_optimizer = local_load_checkpoint(model, optimizer,device)
 loaded_model.eval()
 loaded_model.to(device)
-
 filepath = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
 csv_file_path = "Validation_Partial.csv"
-
 #thresholds are old and determine if model predictions are 1 or 0 based on model probability
 thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844747]
 diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
-
 print("thresholds: ", thresholds)
-
-#is you use test_single_image or test_single_image_no_csv depends on if you have the true labels
-original_image, grad_cam_image = test_single_image(filepath, csv_file_path, thresholds, model, device)
-original_image, grad_cam_image = test_single_image_no_csv(filepath, thresholds, model, device)
-
+#you use test_single_image or test_single_image_no_csv depends on if you have the true labels
+original_image, grad_cam_image, predictions = test_single_image(filepath, csv_file_path, thresholds, model, device)
+#original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model, device)
 for x in range(0,6):
     plot_images(original_image, grad_cam_image[x], diseaseNames[x])
+grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
+diseases_data = []
+for i, disease_name in enumerate(diseaseNames):
+    diseases_data.append({
+        "diseaseName": disease_name,
+        "prediction": predictions[i],
+        "gradCamImage": grad_cam_images_base64[i]
+    })
+data = {
+    "diseasesData": diseases_data
+}
+# Write the structured data to a JSON file
+with open('diseases_predictions_and_images.json', 'w') as json_file:
+    json.dump(data, json_file, indent=4)
+
+# Test Preprocessing and Byte Array Conversion:
+image_path = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
+# Example usage
+byte_array = preprocess_and_convert_to_byte_array(image_path)
+# Convert byte array back to image
+restored_image = byte_array_to_image(byte_array)
+# Plotting preprocessed and restored images side by side
+preprocessed_image = Image.open(image_path)  # Re-open the original image for comparison
+# Create a figure to display the images
+plt.figure(figsize=(10, 5))
+# Plot preprocessed image
+plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
+plt.imshow(preprocessed_image)
+plt.title('Preprocessed Image')
+plt.axis('off')  # Hide axis
+# Plot restored image
+plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
+plt.imshow(restored_image)
+plt.title('Restored Image')
+plt.axis('off')  # Hide axis
+plt.show()
