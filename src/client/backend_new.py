@@ -18,6 +18,7 @@ from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from tabulate import tabulate
+import pydicom
 
 app = Flask(__name__)
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -203,6 +204,22 @@ def byte_array_to_image(byte_array):
     img = Image.open(img_byte_arr)
     return img
 
+def convert_dcm_to_jpg(file_path):
+    ds = pydicom.dcmread(file_path)
+    new_image = ds.pixel_array.astype(float)
+    scaled_image = (np.maximum(new_image, 0) / new_image.max()) * 255.0
+    scaled_image = np.uint8(scaled_image)
+    final_image = Image.fromarray(scaled_image)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+    final_image.save(file_path)
+    image = cv.imread(file_path)
+    RGB = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    new_image = Image.fromarray(RGB)
+    new_image = new_image.resize((1024, 1024))
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "scaled_image.jpg")
+    new_image.save(file_path)
+    return
+
 # Test Single Image:
 model = create_densenet121(6)
 optimizer = torch.optim.Adam(model.parameters(), 0.001)
@@ -216,10 +233,10 @@ thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844
 diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
 print("thresholds: ", thresholds)
 #you use test_single_image or test_single_image_no_csv depends on if you have the true labels
-original_image, grad_cam_image, predictions = test_single_image(filepath, csv_file_path, thresholds, model, device)
-#original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model, device)
-for x in range(0,6):
-    plot_images(original_image, grad_cam_image[x], diseaseNames[x])
+# original_image, grad_cam_image, predictions = test_single_image(filepath, csv_file_path, thresholds, model, device)
+original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model, device)
+# for x in range(0,6):
+#     plot_images(original_image, grad_cam_image[x], diseaseNames[x])
 grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
 diseases_data = []
 for i, disease_name in enumerate(diseaseNames):
@@ -235,24 +252,24 @@ data = {
 with open('diseases_predictions_and_images.json', 'w') as json_file:
     json.dump(data, json_file, indent=4)
 
-# Test Preprocessing and Byte Array Conversion:
-image_path = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
-# Example usage
-byte_array = preprocess_and_convert_to_byte_array(image_path)
-# Convert byte array back to image
-restored_image = byte_array_to_image(byte_array)
-# Plotting preprocessed and restored images side by side
-preprocessed_image = Image.open(image_path)  # Re-open the original image for comparison
-# Create a figure to display the images
-plt.figure(figsize=(10, 5))
-# Plot preprocessed image
-plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
-plt.imshow(preprocessed_image)
-plt.title('Preprocessed Image')
-plt.axis('off')  # Hide axis
-# Plot restored image
-plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
-plt.imshow(restored_image)
-plt.title('Restored Image')
-plt.axis('off')  # Hide axis
-plt.show()
+# # Test Preprocessing and Byte Array Conversion:
+# image_path = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
+# # Example usage
+# byte_array = preprocess_and_convert_to_byte_array(image_path)
+# # Convert byte array back to image
+# restored_image = byte_array_to_image(byte_array)
+# # Plotting preprocessed and restored images side by side
+# preprocessed_image = Image.open(image_path)  # Re-open the original image for comparison
+# # Create a figure to display the images
+# plt.figure(figsize=(10, 5))
+# # Plot preprocessed image
+# plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
+# plt.imshow(preprocessed_image)
+# plt.title('Preprocessed Image')
+# plt.axis('off')  # Hide axis
+# # Plot restored image
+# plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
+# plt.imshow(restored_image)
+# plt.title('Restored Image')
+# plt.axis('off')  # Hide axis
+# plt.show()
