@@ -167,7 +167,14 @@ def upload_our_model():
             # original_image, grad_cam_image = test_single_image(filepath, csv_file_path, thresholds, model, device)
             # print(original_image)
             # print(grad_cam_image[0])
-            return result
+            weights = "densenet121-res224-mimic_ch"
+            mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
+            result2 = dcm_to_json(file_path, weights, mimix_csv)
+            dict1 = json.loads(result2)
+            dict2 = json.loads(result)
+            merged_dict = dict1.copy()
+            merged_dict.update(dict2)
+            return json.dumps(merged_dict)
 
 @app.route('/index/uploads/<filename>')
 def uploaded_file(filename):
@@ -175,7 +182,7 @@ def uploaded_file(filename):
 
 @app.route('/fetchimage')
 def fetch_image():
-    return jsonify({"filename": "scaled_image.jpg"})
+    return jsonify({"filename": "image.jpg"})
 
 @app.route('/deleteimage')
 def delete_image():
