@@ -204,6 +204,38 @@ def byte_array_to_image(byte_array):
     img = Image.open(img_byte_arr)
     return img
 
+# Test Single Image:
+def run_with_no_csv(filepath):
+    #model = MyNeuralNet()
+    model = create_densenet121(6)
+    optimizer = torch.optim.Adam(model.parameters(), 0.001)
+    loaded_model, loaded_optimizer = local_load_checkpoint(model, optimizer,device)
+    loaded_model.eval()
+    loaded_model.to(device)
+    #filepath = "/Users/abhisheksharma/Downloads/local_model (copy)/images/8c421366-9dbe0c06-c9eb74e9-ba9a1e34-f39d6739.jpg"
+    #csv_file_path = "/Users/abhisheksharma/Downloads/local_model (copy)/Validation_Partial.csv"
+    #thresholds are old and determine if model predictions are 1 or 0 based on model probability
+    thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844747]
+    diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
+    print("thresholds: ", thresholds)
+    #is you use test_single_image or test_single_image_no_csv depends on if you have the true labels
+    original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model, device)
+    #original_image, grad_cam_image = test_single_image_no_csv(filepath, thresholds, model, device)
+    for x in range(0,6):
+        plot_images(original_image, grad_cam_image[x], diseaseNames[x])
+    grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
+    diseases_data = []
+    for i, disease_name in enumerate(diseaseNames):
+        diseases_data.append({
+            "diseaseName": disease_name,
+            "prediction": predictions[i],
+            "gradCamImage": grad_cam_images_base64[i]
+        })
+    data = { "diseasesData": diseases_data }
+    # Convert the structured data to a JSON string
+    json_data = json.dumps(data, indent=4)
+    return json_data
+
 def convert_dcm_to_jpg(file_path):
     ds = pydicom.dcmread(file_path)
     new_image = ds.pixel_array.astype(float)
@@ -252,24 +284,24 @@ data = {
 with open('diseases_predictions_and_images.json', 'w') as json_file:
     json.dump(data, json_file, indent=4)
 
-# # Test Preprocessing and Byte Array Conversion:
-# image_path = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
-# # Example usage
-# byte_array = preprocess_and_convert_to_byte_array(image_path)
-# # Convert byte array back to image
-# restored_image = byte_array_to_image(byte_array)
-# # Plotting preprocessed and restored images side by side
-# preprocessed_image = Image.open(image_path)  # Re-open the original image for comparison
-# # Create a figure to display the images
-# plt.figure(figsize=(10, 5))
-# # Plot preprocessed image
-# plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
-# plt.imshow(preprocessed_image)
-# plt.title('Preprocessed Image')
-# plt.axis('off')  # Hide axis
-# # Plot restored image
-# plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
-# plt.imshow(restored_image)
-# plt.title('Restored Image')
-# plt.axis('off')  # Hide axis
-# plt.show()
+# Test Preprocessing and Byte Array Conversion:
+image_path = "uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
+# Example usage
+byte_array = preprocess_and_convert_to_byte_array(image_path)
+# Convert byte array back to image
+restored_image = byte_array_to_image(byte_array)
+# Plotting preprocessed and restored images side by side
+preprocessed_image = Image.open(image_path)  # Re-open the original image for comparison
+# Create a figure to display the images
+plt.figure(figsize=(10, 5))
+# Plot preprocessed image
+plt.subplot(1, 2, 1)  # 1 row, 2 columns, 1st subplot
+plt.imshow(preprocessed_image)
+plt.title('Preprocessed Image')
+plt.axis('off')  # Hide axis
+# Plot restored image
+plt.subplot(1, 2, 2)  # 1 row, 2 columns, 2nd subplot
+plt.imshow(restored_image)
+plt.title('Restored Image')
+plt.axis('off')  # Hide axis
+plt.show()
