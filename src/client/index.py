@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
 from backend import dcm_to_json
-from backend_new import test_single_image_no_csv, convert_dcm_to_jpg, image_to_base64, run_with_no_csv, thresholds, model, device
+from backend_new import test_single_image_no_csv, convert_dcm_to_jpg, image_to_base64, run_with_no_csv, device
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -147,11 +147,18 @@ def upload_our_model():
             
             # new way
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+            print(file_path)
             image.save(file_path)
             convert_dcm_to_jpg(file_path)
-            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "scaled_image.jpg")
-            image.save(file_path2)
-            run_with_no_csv("file_path2")
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+            # print(file_path2)
+            # image.save(file_path2)
+            # result = run_with_no_csv("/Users/ant.vu/Developer/ai-for-chest-x-ray/src/demo_images/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg")
+            result = run_with_no_csv(file_path2)
+            # result = run_with_no_csv("uploads/image.jpg")
+            print(result)
+            # result2 = json.loads(result)
+            # print(result2)
 
             # filepath = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
             # csv_file_path = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/Validation_Partial.csv"
@@ -172,7 +179,7 @@ def fetch_image():
 
 @app.route('/deleteimage')
 def delete_image():
-    file_path = file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
     # os.remove(file_path)
     return {"true": True}
 

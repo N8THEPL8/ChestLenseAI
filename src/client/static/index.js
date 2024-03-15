@@ -39,19 +39,22 @@ async function handleFormSubmit(e, url) {
     p_age.innerHTML = `${result.Patient_Age_at_Time_of_Acquisition}`;
 
     const ate_actual = document.getElementById('ate_actual');
-    ate_actual.innerHTML = `${result.Actual_Atelectasis}`;
+    ate_actual.innerHTML = `${result.diseasesData[0].prediction}`;
 
     const car_actual = document.getElementById('car_actual');
-    car_actual.innerHTML = `${result.Actual_Cardiomegaly}`;
+    car_actual.innerHTML = `${result.diseasesData[1].prediction}`;
 
     const con_actual = document.getElementById('con_actual');
-    con_actual.innerHTML = `${result.Actual_Consolidation}`;
+    con_actual.innerHTML = `${result.diseasesData[2].prediction}`;
 
     const ede_actual = document.getElementById('ede_actual');
-    ede_actual.innerHTML = `${result.Actual_Edema}`;
+    ede_actual.innerHTML = `${result.diseasesData[3].prediction}`;
+
+    const nof_actual = document.getElementById('nof_actual');
+    nof_actual.innerHTML = `${result.diseasesData[4].prediction}`;
 
     const eff_actual = document.getElementById('eff_actual');
-    eff_actual.innerHTML = `${result.Actual_Effusion}`;
+    eff_actual.innerHTML = `${result.diseasesData[5].prediction}`;
 
     const response2 = await fetch('/fetchimage');
 
