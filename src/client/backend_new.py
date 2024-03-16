@@ -38,7 +38,7 @@ app = Flask(__name__)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
 # checkpoint_path = "/Users/yuvra/Desktop/CAPSTONE/ai-for-chest-x-ray/src/client/bce_masked_adam8.pth.tar"
-checkpoint_path = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/bce_masked_adam8.pth.tar"
+checkpoint_path = "bce_masked_adam8.pth.tar"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def calculate_age(birth_date, current_date):
