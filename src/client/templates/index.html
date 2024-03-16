@@ -105,9 +105,9 @@
             <br>
             <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data">
                 <select id="uploadedImages" name="uploadedImages">
-                    <option value="">Select an image</option>
+                    <option value="">Select Previous Scans</option>
                     {% for scan in scans %}
-                        <option value="{{ scan.s_dicom }}">{{ scan.s_id }}</option>
+                        <option value="{{ byte_array_to_image(scan.s_dicom) }}|{{ scan.s_id }}">Scan ID: {{ scan.s_id }}</option>
                     {% endfor %}
                 </select>
                 <input type="file" id="xrayImage" name="xrayImage">
