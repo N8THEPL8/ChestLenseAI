@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>AI For Chest X-ray - Patient</title>
+<title>AI For Chest X-ray</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -102,6 +102,7 @@
         <div class="container">
             <label for="xrayImage">Upload Chest X-ray Image:</label>
             <!-- still only uses file input -->
+            <br>
             <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data">
                 <select id="uploadedImages" name="uploadedImages">
                     <option value="">Select an image</option>
@@ -113,11 +114,11 @@
                 <input type="submit" name="modelType" value="Prebuilt">
                 <input type="submit" name="modelType" value="Our Model">
             </form>
-            <!-- options don't work yet -->
             <div class="image-placeholder">
                 <img id="output" src="" width="500"/>
             </div>
-            <select id="imageOptions" name="options">
+            <br>
+            <select id="imageOptions" name="imageOptions">
                 <option value="option1">Original</option>
                 <option value="option2">Atelectasis - Colour Gradience</option>
                 <option value="option3">Cardiomegaly - Colour Gradience</option>

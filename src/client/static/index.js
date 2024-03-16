@@ -60,17 +60,30 @@ async function handleFormSubmit(e, url) {
 
     const result2 = await response2.json();
 
-    console.log(result2.filename);
     document.getElementById("output").src = `uploads\\${result2.filename}`;
 
+    const dropdown = document.getElementById('imageOptions');
+    dropdown.addEventListener('change', function () {
+        console.log('clicked')
+        const selectedOption = dropdown.options[dropdown.selectedIndex].value;
+        const imageElement = document.getElementById('output');
+
+        if (selectedOption === 'option1') {
+            document.getElementById("output").src = `uploads\\${result2.filename}`;
+        } else if (selectedOption === 'option2') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[0].gradCamImage;
+        } else if (selectedOption === 'option3') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[1].gradCamImage;
+        } else if (selectedOption === 'option4') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[2].gradCamImage;
+        } else if (selectedOption === 'option5') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[3].gradCamImage;
+        } else if (selectedOption === 'option6') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[4].gradCamImage;
+        } else if (selectedOption === 'option7') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[5].gradCamImage;
+        }
+    });
+
     const response3 = await fetch('/deleteimage');
-}
-
-var loadFile = function (event) {
-    var image = document.getElementById('output');
-    image.src = URL.createObjectURL(event.target.files[0]);
-};
-
-function eraseText() {
-    document.getElementById("output2").value = "";
 }

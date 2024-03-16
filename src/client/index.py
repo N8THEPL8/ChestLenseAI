@@ -1,6 +1,5 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
-from backend import dcm_to_json
-from backend_new import test_single_image_no_csv, convert_dcm_to_jpg, image_to_base64, run_with_no_csv, device
+from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -107,69 +106,22 @@ def upload():
                 db.session.commit()
             return result
 
-#temporarily trying new backend
 @app.route("/upload-our-model", methods=['POST'])
 def upload_our_model():
     print('our model')
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
         if image.filename != '':
-            # #old way
-            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            # image.save(file_path)
-            # print(file_path) # /Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/uploads/demo1.dcm
-            # weights = "densenet121-res224-mimic_ch"
-            # mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
-            # result = dcm_to_json(file_path, weights, mimix_csv)
-            # file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
-            # with open(file_path2, 'rb') as file:
-            #     jpg = file.read()
-            # # os.remove(file_path)
-            # result2 = json.loads(result)
-            # existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
-            # if existing_scan is not None:
-            #     pass # duplicate entry causes issues
-            # else:
-            #     new_scan = NewScan(
-            #         s_id=result2['Study_ID'],
-            #         p_id=result2['Patient_ID'],
-            #         s_dicom=jpg
-            #         # s_name=result2['Patient_Name'],
-            #         # s_sex = result2['Patient_Sex'],
-            #         # s_birthdate = result2['Patient_Birth_Date'],
-            #         # s_acqdate = result2['Acquisition_Date'],
-            #         # s_pos = result2['View_Position'],
-            #         # s_orientation = result2['Patient_Orientation'],
-            #         # s_age = result2['Patient_Age_at_Time_of_Acquisition']
-            #     )
-            #     db.session.add(new_scan)
-            #     db.session.commit()
-            
-            # new way
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            print(file_path)
             image.save(file_path)
             convert_dcm_to_jpg(file_path)
             file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
-            # print(file_path2)
-            # image.save(file_path2)
-            # result = run_with_no_csv("/Users/ant.vu/Developer/ai-for-chest-x-ray/src/demo_images/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg")
             result = run_with_no_csv(file_path2)
-            # result = run_with_no_csv("uploads/image.jpg")
-            print(result)
-            # result2 = json.loads(result)
-            # print(result2)
 
-            # filepath = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/uploads/8c0171a3-925313ff-f63faed5-3007b5ad-d1bbb676.jpg"
-            # csv_file_path = "/Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/Validation_Partial.csv"
-            # thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844747]
-            # print('helllo')
-            # original_image, grad_cam_image = test_single_image(filepath, csv_file_path, thresholds, model, device)
-            # print(original_image)
-            # print(grad_cam_image[0])
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result2 = dcm_to_json(file_path, weights, mimix_csv)
+
             dict1 = json.loads(result2)
             dict2 = json.loads(result)
             merged_dict = dict1.copy()
