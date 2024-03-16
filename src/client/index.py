@@ -1,11 +1,13 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
-from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv, base64_to_image
+from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv, base64_to_image, byte_array_to_image
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
+patientID = None
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
@@ -67,10 +69,12 @@ def doctor():
 
 @app.route('/index/<patient_id>')
 def index(patient_id):
+    global patientID
+    patientID = patient_id
     patient = Patient.query.get(patient_id)
     if patient:
         scans = NewScan.query.filter_by(p_id=patient_id).all()
-        return render_template('index.html', patient=patient, scans=scans)
+        return render_template('index.html', patient=patient, scans=scans, byte_array_to_image=byte_array_to_image)
     return redirect(url_for('doctor'))
 
 # change this once we have prebuilt
@@ -114,8 +118,11 @@ def upload():
 @app.route("/upload-our-model", methods=['POST'])
 def upload_our_model():
     print('our model')
+
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
+        selected_scan_jpg = request.form['uploadedImages']
+
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
             image.save(file_path)
@@ -126,7 +133,7 @@ def upload_our_model():
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result2 = dcm_to_json(file_path, weights, mimix_csv)
-
+            print(result2)
             dict1 = json.loads(result2)
             dict2 = json.loads(result)
             merged_dict = dict1.copy()
@@ -197,6 +204,32 @@ def upload_our_model():
                 db.session.commit()
 
             return json.dumps(merged_dict)
+        else:
+            _ , selected_scan_id = selected_scan_jpg.split('|')
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+            result = run_with_no_csv(file_path2)
+
+            existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
+            if existing_scan:
+                scan_details = {
+                    'Patient_Name': str(existing_scan.s_name),
+                    'Patient_ID': str(existing_scan.p_id),
+                    'Patient_Sex': str(existing_scan.s_sex),
+                    'Patient_Birth_Date': str(existing_scan.s_birthdate),
+                    'Acquisition_Date': str(existing_scan.s_acqdate),
+                    'View_Position': str(existing_scan.s_pos),
+                    'Patient_Orientation': str(existing_scan.s_orientation),
+                    'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
+                }
+
+                json_scan_details = json.dumps(scan_details, indent=4)
+
+                dict1 = json.loads(json_scan_details)
+                dict2 = json.loads(result)
+                merged_dict = dict1.copy()
+                merged_dict.update(dict2)
+
+                return json.dumps(merged_dict)
 
 @app.route('/index/uploads/<filename>')
 def uploaded_file(filename):
