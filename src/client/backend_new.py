@@ -37,7 +37,6 @@ import pydicom
 app = Flask(__name__)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
-# checkpoint_path = "/Users/yuvra/Desktop/CAPSTONE/ai-for-chest-x-ray/src/client/bce_masked_adam8.pth.tar"
 checkpoint_path = "bce_masked_adam8.pth.tar"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -355,6 +354,12 @@ def preprocess_and_convert_to_byte_array(image_path):
 def byte_array_to_image(byte_array):
     img_byte_arr = io.BytesIO(byte_array)
     img = Image.open(img_byte_arr)
+    return img
+
+# Anthony's function to convert base64 string to image
+def base64_to_image(base64_str):
+    img_bytes = base64.b64decode(base64_str)
+    img = Image.open(io.BytesIO(img_bytes))
     return img
 
 # Test Single Image:
