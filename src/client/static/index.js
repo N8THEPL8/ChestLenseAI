@@ -14,6 +14,11 @@ async function handleFormSubmit(e, url) {
 
     const result = await response.json();
 
+    document.getElementById("scanId").value = result.Study_ID;
+
+    const existing_comment = document.getElementById('output2');
+    existing_comment.innerHTML = `${result.comment}`;
+
     const p_name = document.getElementById('p_name');
     p_name.innerHTML = `${result.Patient_Name}`;
 

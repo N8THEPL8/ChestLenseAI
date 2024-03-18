@@ -67,6 +67,17 @@ def doctor():
         return render_template("doctor.html", patients=patients)
     return redirect(url_for('login'))
 
+@app.route('/comments', methods=['POST'])
+def comments():
+    data = request.json
+    textarea_content = data.get('textarea_content')
+    scan_id = data.get('scan_id')
+
+    comment_updated = NewScan.query.filter_by(s_id=scan_id).update({'s_comment': textarea_content})
+    db.session.commit()
+
+    return jsonify({'comment': textarea_content})
+
 @app.route('/index/<patient_id>')
 def index(patient_id):
     global patientID
@@ -134,14 +145,19 @@ def upload_our_model():
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result2 = dcm_to_json(file_path, weights, mimix_csv)
             print(result2)
-            dict1 = json.loads(result2)
-            dict2 = json.loads(result)
-            merged_dict = dict1.copy()
-            merged_dict.update(dict2)
 
             with open(file_path2, 'rb') as file:
                 jpg = file.read()
             result3 = json.loads(result2)
+
+            comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
+            commentJSON = {'comment' : comment}
+            dict1 = json.loads(result2)
+            dict2 = json.loads(result)
+            merged_dict = dict1.copy()
+            merged_dict.update(dict2)
+            merged_dict.update(commentJSON)
+
             existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
             if existing_scan is not None:
                 pass # duplicate entry causes issues
@@ -204,8 +220,13 @@ def upload_our_model():
                 db.session.commit()
 
             return json.dumps(merged_dict)
+        
         else:
-            _ , selected_scan_id = selected_scan_jpg.split('|')
+            selected_jpg , selected_scan_id = selected_scan_jpg.split('|', 1)
+
+            #img_ate = base64_to_image(selected_jpg)
+            #img_ate.save('uploads/image.jpg')
+
             file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
             result = run_with_no_csv(file_path2)
 

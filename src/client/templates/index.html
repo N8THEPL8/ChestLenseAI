@@ -107,7 +107,7 @@
                 <select id="uploadedImages" name="uploadedImages">
                     <option value="">Select Previous Scans</option>
                     {% for scan in scans %}
-                        <option value="{{ byte_array_to_image(scan.s_dicom) }}|{{ scan.s_id }}">Scan ID: {{ scan.s_id }}</option>
+                        <option value="{{ scan.s_dicom }}|{{ scan.s_id }}">Scan ID: {{ scan.s_id }}</option>
                     {% endfor %}
                 </select>
                 <input type="file" id="xrayImage" name="xrayImage">
@@ -203,11 +203,11 @@
             </table>
             <!-- comments don't work yet -->
             <label for="commentBox">Comments:</label>
-            <textarea id="output2"></textarea>
-            <input type="submit" value="Submit" onclick="javascript:eraseText();">
-            {% for scan in scans %}
-                <p>{{ scan.s_comment }}</p>
-            {% endfor %}
+            <form id="commentsForm">
+                <textarea id="output2" name="textarea_content"></textarea>
+                <input type="hidden" id="scanId" name="scan_id" value="{{ scans.s_id }}">
+                <input type="submit" value="Submit">
+            </form>
         </div>
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
@@ -224,6 +224,38 @@
         //     document.getElementById("uploadForm").action = action;
         //     document.getElementById("uploadForm").submit();
         // }
+        document.getElementById("commentsForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            var textareaContent = document.getElementById("output2").value;
+            var scanId = document.getElementById("scanId").value;
+
+            var payload = {
+                textarea_content: textareaContent,
+                scan_id: scanId
+            };
+
+            fetch('/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const comment = document.getElementById('output2');
+                comment.innerHTML = `${data.comment}`;
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        });
     </script>
 </body>
 </html>
