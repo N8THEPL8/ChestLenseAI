@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
-from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv, base64_to_image, byte_array_to_image
+from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv, byte_array_to_image, base64_to_image
+from backend_prebuilt import run_with_no_csv_prebuilt
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -29,7 +30,6 @@ class Patient(db.Model):
     p_sex = db.Column(db.String(100), nullable=False)
     p_birthdate = db.Column(db.String(100), nullable=False)
 
-# not done
 class NewScan(db.Model):
     __tablename__ = 'new_scan_table'
     s_id = db.Column(db.String(100), primary_key=True)
@@ -43,12 +43,6 @@ class NewScan(db.Model):
     s_pos = db.Column(db.String(100), nullable=True)
     s_orientation = db.Column(db.String(100), nullable=True)
     s_age = db.Column(db.String(100), nullable=True)
-    s_colour_ate = db.Column(db.LargeBinary, nullable=True)
-    s_colour_car = db.Column(db.LargeBinary, nullable=True)
-    s_colour_con = db.Column(db.LargeBinary, nullable=True)
-    s_colour_ede = db.Column(db.LargeBinary, nullable=True)
-    s_colour_eff = db.Column(db.LargeBinary, nullable=True)
-    s_colour_nof = db.Column(db.LargeBinary, nullable=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -85,7 +79,7 @@ def index(patient_id):
     patient = Patient.query.get(patient_id)
     if patient:
         scans = NewScan.query.filter_by(p_id=patient_id).all()
-        return render_template('index.html', patient=patient, scans=scans, byte_array_to_image=byte_array_to_image)
+        return render_template('index.html', patient=patient, scans=scans, byte_array_to_image=byte_array_to_image, base64_to_image=base64_to_image)
     return redirect(url_for('doctor'))
 
 # change this once we have prebuilt
@@ -94,37 +88,61 @@ def upload():
     print('prebuilt')
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
+        selected_scan_jpg = request.form['uploadedImages']
+
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
             image.save(file_path)
-            print(file_path) # /Users/ant.vu/Developer/ai-for-chest-x-ray/src/client/uploads/demo1.dcm
+            convert_dcm_to_jpg(file_path)
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+            result = run_with_no_csv_prebuilt(file_path2)
+
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
-            result = dcm_to_json(file_path, weights, mimix_csv)
-            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], 'scaled_image.jpg')
+            result2 = dcm_to_json(file_path, weights, mimix_csv)
+            print(result2)
+
             with open(file_path2, 'rb') as file:
                 jpg = file.read()
-            # os.remove(file_path)
-            result2 = json.loads(result)
-            existing_scan = NewScan.query.filter_by(s_id=result2['Study_ID']).first()
+            result3 = json.loads(result2)
+
+            comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
+            commentJSON = {'comment' : comment}
+            dict1 = json.loads(result2)
+            dict2 = json.loads(result)
+            merged_dict = dict1.copy()
+            merged_dict.update(dict2)
+            merged_dict.update(commentJSON)
+
+            existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
             if existing_scan is not None:
                 pass # duplicate entry causes issues
             else:
+                s_pos = ''
+                if result3['View_Position'] == 'PA':
+                    s_pos = 'Frontal'
+                
+                s_orientation = ''
+                if result3['Patient_Orientation'] == 'PA':
+                    s_orientation = 'Frontal'
+                
                 new_scan = NewScan(
-                    s_id=result2['Study_ID'],
-                    p_id=result2['Patient_ID'],
-                    s_dicom=jpg
-                    # s_name=result2['Patient_Name'],
-                    # s_sex = result2['Patient_Sex'],
-                    # s_birthdate = result2['Patient_Birth_Date'],
-                    # s_acqdate = result2['Acquisition_Date'],
-                    # s_pos = result2['View_Position'],
-                    # s_orientation = result2['Patient_Orientation'],
-                    # s_age = result2['Patient_Age_at_Time_of_Acquisition']
+                    s_id = result3['Study_ID'],
+                    p_id = result3['Patient_ID'],
+                    s_dicom = jpg,
+                    s_name = result3['Patient_Name'],
+                    s_sex = result3['Patient_Sex'],
+                    s_birthdate = result3['Patient_Birth_Date'],
+                    s_acqdate = result3['Acquisition_Date'],
+                    s_pos = s_pos if s_pos else result3['View_Position'],
+                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
+                    s_age = result3['Patient_Age_at_Time_of_Acquisition'],
+                    s_comment = ''
                 )
                 db.session.add(new_scan)
                 db.session.commit()
-            return result
+
+            return json.dumps(merged_dict)
 
 @app.route("/upload-our-model", methods=['POST'])
 def upload_our_model():
@@ -162,42 +180,14 @@ def upload_our_model():
             if existing_scan is not None:
                 pass # duplicate entry causes issues
             else:
-                image_array_ate = merged_dict['diseasesData'][0]['gradCamImage']
-                img_ate = base64_to_image(image_array_ate)
-                img_ate.save('uploads/output_ate.jpg')
-                with open('uploads/output_ate.jpg', 'rb') as file:
-                    jpg_ate = file.read()
+                s_pos = ''
+                if result3['View_Position'] == 'PA':
+                    s_pos = 'Frontal'
                 
-                image_array_car = merged_dict['diseasesData'][1]['gradCamImage']
-                img_car = base64_to_image(image_array_car)
-                img_car.save('uploads/output_car.jpg')
-                with open('uploads/output_car.jpg', 'rb') as file:
-                    jpg_car = file.read()
-                
-                image_array_con = merged_dict['diseasesData'][2]['gradCamImage']
-                img_con = base64_to_image(image_array_con)
-                img_con.save('uploads/output_con.jpg')
-                with open('uploads/output_con.jpg', 'rb') as file:
-                    jpg_con = file.read()
-                
-                image_array_ede = merged_dict['diseasesData'][3]['gradCamImage']
-                img_ede = base64_to_image(image_array_ede)
-                img_ede.save('uploads/output_ede.jpg')
-                with open('uploads/output_ede.jpg', 'rb') as file:
-                    jpg_ede = file.read()
-                
-                image_array_eff = merged_dict['diseasesData'][4]['gradCamImage']
-                img_eff = base64_to_image(image_array_eff)
-                img_eff.save('uploads/output_eff.jpg')
-                with open('uploads/output_eff.jpg', 'rb') as file:
-                    jpg_eff = file.read()
-                
-                image_array_nof = merged_dict['diseasesData'][5]['gradCamImage']
-                img_nof = base64_to_image(image_array_nof)
-                img_nof.save('uploads/output_nof.jpg')
-                with open('uploads/output_nof.jpg', 'rb') as file:
-                    jpg_nof = file.read()
-                
+                s_orientation = ''
+                if result3['Patient_Orientation'] == 'PA':
+                    s_orientation = 'Frontal'
+
                 new_scan = NewScan(
                     s_id = result3['Study_ID'],
                     p_id = result3['Patient_ID'],
@@ -206,15 +196,10 @@ def upload_our_model():
                     s_sex = result3['Patient_Sex'],
                     s_birthdate = result3['Patient_Birth_Date'],
                     s_acqdate = result3['Acquisition_Date'],
-                    s_pos = result3['View_Position'],
-                    s_orientation = result3['Patient_Orientation'],
+                    s_pos = s_pos if s_pos else result3['View_Position'],
+                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
                     s_age = result3['Patient_Age_at_Time_of_Acquisition'],
-                    s_colour_ate = jpg_ate,
-                    s_colour_car = jpg_car,
-                    s_colour_con = jpg_con,
-                    s_colour_ede = jpg_ede,
-                    s_colour_eff = jpg_eff,
-                    s_colour_nof = jpg_nof
+                    s_comment = ''
                 )
                 db.session.add(new_scan)
                 db.session.commit()
@@ -222,13 +207,17 @@ def upload_our_model():
             return json.dumps(merged_dict)
         
         else:
-            selected_jpg , selected_scan_id = selected_scan_jpg.split('|', 1)
+            print('no image')
+            selected_jpg, selected_scan_id = selected_scan_jpg.split('yuvraj', 1)
+            print(selected_scan_id)
 
-            #img_ate = base64_to_image(selected_jpg)
-            #img_ate.save('uploads/image.jpg')
+            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], "no_image.jpg")
+            # with open('no_image.jpg', 'wb') as f:
+            #     f.write(selected_jpg)
+            # print('here')
 
-            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
-            result = run_with_no_csv(file_path2)
+            # file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "no_image.jpg")
+            result = run_with_no_csv('uploads/image.jpg')
 
             existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
             if existing_scan:
@@ -250,7 +239,7 @@ def upload_our_model():
                 merged_dict = dict1.copy()
                 merged_dict.update(dict2)
 
-                return json.dumps(merged_dict)
+            return json.dumps(merged_dict)
 
 @app.route('/index/uploads/<filename>')
 def uploaded_file(filename):

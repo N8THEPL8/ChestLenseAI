@@ -17,7 +17,7 @@ async function handleFormSubmit(e, url) {
     document.getElementById("scanId").value = result.Study_ID;
 
     const existing_comment = document.getElementById('output2');
-    existing_comment.innerHTML = `${result.comment}`;
+    existing_comment.innerHTML = result.comment ? `${result.comment}` : '';
 
     const p_name = document.getElementById('p_name');
     p_name.innerHTML = `${result.Patient_Name}`;
@@ -35,10 +35,18 @@ async function handleFormSubmit(e, url) {
     p_ad.innerHTML = `${result.Acquisition_Date}`;
 
     const p_pos = document.getElementById('p_pos');
-    p_pos.innerHTML = `${result.View_Position}`;
+    if (result.View_Position === 'PA') {
+        p_pos.innerHTML = 'Frontal';
+    } else {
+        p_pos.innerHTML = `${result.View_Position}`;
+    }
 
     const p_orient = document.getElementById('p_orient');
-    p_orient.innerHTML = `${result.Patient_Orientation}`;
+    if (result.Patient_Orientation === 'PA') {
+        p_orient.innerHTML = 'Frontal';
+    } else {
+        p_orient.innerHTML = `${result.Patient_Orientation}`;
+    }
 
     const p_age = document.getElementById('p_age');
     p_age.innerHTML = `${result.Patient_Age_at_Time_of_Acquisition}`;
