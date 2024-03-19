@@ -101,13 +101,12 @@
     <div class="main-content">
         <div class="container">
             <label for="xrayImage">Upload Chest X-ray Image:</label>
-            <!-- still only uses file input -->
             <br>
             <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data">
                 <select id="uploadedImages" name="uploadedImages">
                     <option value="">Select Previous Scans</option>
                     {% for scan in scans %}
-                        <option value="{{ scan.s_dicom }}|{{ scan.s_id }}">Scan ID: {{ scan.s_id }}</option>
+                        <option value="{{ scan.s_dicom }}yuvraj{{ scan.s_id }}">Scan ID: {{ scan.s_id }}</option>
                     {% endfor %}
                 </select>
                 <input type="file" id="xrayImage" name="xrayImage">
@@ -211,18 +210,6 @@
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
     <script>
-        // function submitForm(action) {
-        //     // Determine which image option was selected
-        //     var selectedImage = document.getElementById("uploadedImages").value;
-        //     // If no image selected from dropdown, use file upload option
-        //     var imageFile = selectedImage ? selectedImage : document.getElementById("xrayImage").files[0];
-        //     // Create FormData object and append selected image
-        //     var formData = new FormData();
-        //     formData.append("xrayImage", imageFile);
-        //     // Set form action and submit
-        //     document.getElementById("uploadForm").action = action;
-        //     document.getElementById("uploadForm").submit();
-        // }
         document.getElementById("commentsForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Prevent the form from submitting normally
 
