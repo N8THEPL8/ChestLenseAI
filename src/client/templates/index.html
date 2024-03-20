@@ -2,97 +2,7 @@
 <html>
 <head>
 <title>AI For Chest X-ray</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        display: flex;
-        flex-direction: column;
-        background-color: #f7f7f7;
-    }
-    .header {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #3498db;
-        color: #fff;
-        padding: 20px 0;
-    }
-    h1 {
-        font-size: 24px;
-    }
-    .main-content {
-        display: flex;
-        justify-content: center;
-    }
-    .container, .table-container {
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        background-color: #fff;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin: 20px;
-    }
-    h1 {
-        text-align: center;
-    }
-    .form-group {
-        margin-bottom: 20px;
-    }
-    label {
-        display: block;
-        font-weight: bold;
-    }
-    input[type="file"], input[type="text"] {
-        width: 100%;
-        padding: 10px;
-        margin: 5px 0;
-    }
-    textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 5px 0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        table-layout: fixed;
-    }
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        text-align: center;
-    }
-    th {
-        background-color: #f2f2f2;
-    }
-    .image-placeholder {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .image-placeholder img {
-        max-width: 100%;
-        height: 600px;
-        width: 600px;
-        box-shadow:inset 0px 0px 0px 1px black;
-    }
-    #patientData, #diseaseLikelihood {
-        margin-bottom: 50px;
-    }
-    #diseases {
-        text-align: left;
-        width: 50%;
-    }
-    input[type=submit] {
-        width: 80px;
-        height: 20px;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
     <div class="header">
@@ -209,39 +119,5 @@
         </div>
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
-    <script>
-        document.getElementById("commentsForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent the form from submitting normally
-
-            var textareaContent = document.getElementById("output2").value;
-            var scanId = document.getElementById("scanId").value;
-
-            var payload = {
-                textarea_content: textareaContent,
-                scan_id: scanId
-            };
-
-            fetch('/comments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const comment = document.getElementById('output2');
-                comment.innerHTML = `${data.comment}`;
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-        });
-    </script>
 </body>
 </html>

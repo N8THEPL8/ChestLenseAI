@@ -70,7 +70,7 @@ def comments():
     scan_id = data.get('scan_id')
     comment_updated = NewScan.query.filter_by(s_id=scan_id).update({'s_comment': textarea_content})
     db.session.commit()
-    return jsonify({'comment': textarea_content})
+    return jsonify({'scan_ID' : scan_id, 'comment': textarea_content})
 
 @app.route('/index/<patient_id>')
 def index(patient_id):
@@ -108,6 +108,7 @@ def upload():
             result3 = json.loads(result2)
             comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
             commentJSON = {'comment' : comment}
+            print(comment)
             dict1 = json.loads(result2)
             dict2 = json.loads(result)
             merged_dict = dict1.copy()
@@ -161,12 +162,14 @@ def upload():
                     'Patient_Orientation': str(existing_scan.s_orientation),
                     'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
                 }
-
+                comment = NewScan.query.filter_by(s_id=selected_scan_id).value(NewScan.s_comment)
+                commentJSON = {'comment' : comment}
                 json_scan_details = json.dumps(scan_details, indent=4)
                 dict1 = json.loads(json_scan_details)
                 dict2 = json.loads(result)
                 merged_dict = dict1.copy()
                 merged_dict.update(dict2)
+                merged_dict.update(commentJSON)
 
             return json.dumps(merged_dict)
 
@@ -248,12 +251,14 @@ def upload_our_model():
                     'Patient_Orientation': str(existing_scan.s_orientation),
                     'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
                 }
-
+                comment = NewScan.query.filter_by(s_id=selected_scan_id).value(NewScan.s_comment)
+                commentJSON = {'comment' : comment}
                 json_scan_details = json.dumps(scan_details, indent=4)
                 dict1 = json.loads(json_scan_details)
                 dict2 = json.loads(result)
                 merged_dict = dict1.copy()
                 merged_dict.update(dict2)
+                merged_dict.update(commentJSON)
 
             return json.dumps(merged_dict)
 

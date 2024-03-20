@@ -98,5 +98,38 @@ async function handleFormSubmit(e, url) {
         }
     });
 
+    document.getElementById("commentsForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent the form from submitting normally
+
+        var textareaContent = document.getElementById("output2").value;
+        var scanId = document.getElementById("scanId").value;
+
+        var payload = {
+            textarea_content: textareaContent,
+            scan_id: scanId
+        };
+
+        fetch('/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const comment = document.getElementById('output2');
+            comment.innerHTML = `${data.comment}`;
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    });
+    
     const response3 = await fetch('/deleteimage');
 }
