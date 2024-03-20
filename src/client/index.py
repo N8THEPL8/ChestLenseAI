@@ -1,9 +1,11 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for, session
-from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv, byte_array_to_image, base64_to_image
+from backend_new import dcm_to_json, convert_dcm_to_jpg, run_with_no_csv
 from backend_prebuilt import run_with_no_csv_prebuilt
 import os
 from flask_sqlalchemy import SQLAlchemy
 import json
+from PIL import Image
+import io
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -66,10 +68,8 @@ def comments():
     data = request.json
     textarea_content = data.get('textarea_content')
     scan_id = data.get('scan_id')
-
     comment_updated = NewScan.query.filter_by(s_id=scan_id).update({'s_comment': textarea_content})
     db.session.commit()
-
     return jsonify({'comment': textarea_content})
 
 @app.route('/index/<patient_id>')
@@ -79,16 +79,15 @@ def index(patient_id):
     patient = Patient.query.get(patient_id)
     if patient:
         scans = NewScan.query.filter_by(p_id=patient_id).all()
-        return render_template('index.html', patient=patient, scans=scans, byte_array_to_image=byte_array_to_image, base64_to_image=base64_to_image)
+        return render_template('index.html', patient=patient, scans=scans)
     return redirect(url_for('doctor'))
 
 # change this once we have prebuilt
 @app.route("/upload", methods=['POST'])
 def upload():
-    print('prebuilt')
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
-        selected_scan_jpg = request.form['uploadedImages']
+        selected_scan_id = request.form['uploadedImages']
 
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
@@ -100,74 +99,13 @@ def upload():
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result2 = dcm_to_json(file_path, weights, mimix_csv)
-            print(result2)
 
-            with open(file_path2, 'rb') as file:
-                jpg = file.read()
+            with Image.open(file_path2) as img:
+                byte_arr = io.BytesIO()
+                img.save(byte_arr, format='JPEG')
+                jpg = byte_arr.getvalue()
+
             result3 = json.loads(result2)
-
-            comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
-            commentJSON = {'comment' : comment}
-            dict1 = json.loads(result2)
-            dict2 = json.loads(result)
-            merged_dict = dict1.copy()
-            merged_dict.update(dict2)
-            merged_dict.update(commentJSON)
-
-            existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
-            if existing_scan is not None:
-                pass # duplicate entry causes issues
-            else:
-                s_pos = ''
-                if result3['View_Position'] == 'PA':
-                    s_pos = 'Frontal'
-                
-                s_orientation = ''
-                if result3['Patient_Orientation'] == 'PA':
-                    s_orientation = 'Frontal'
-                
-                new_scan = NewScan(
-                    s_id = result3['Study_ID'],
-                    p_id = result3['Patient_ID'],
-                    s_dicom = jpg,
-                    s_name = result3['Patient_Name'],
-                    s_sex = result3['Patient_Sex'],
-                    s_birthdate = result3['Patient_Birth_Date'],
-                    s_acqdate = result3['Acquisition_Date'],
-                    s_pos = s_pos if s_pos else result3['View_Position'],
-                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
-                    s_age = result3['Patient_Age_at_Time_of_Acquisition'],
-                    s_comment = ''
-                )
-                db.session.add(new_scan)
-                db.session.commit()
-
-            return json.dumps(merged_dict)
-
-@app.route("/upload-our-model", methods=['POST'])
-def upload_our_model():
-    print('our model')
-
-    if 'xrayImage' in request.files:
-        image = request.files['xrayImage']
-        selected_scan_jpg = request.form['uploadedImages']
-
-        if image.filename != '':
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            image.save(file_path)
-            convert_dcm_to_jpg(file_path)
-            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
-            result = run_with_no_csv(file_path2)
-
-            weights = "densenet121-res224-mimic_ch"
-            mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
-            result2 = dcm_to_json(file_path, weights, mimix_csv)
-            print(result2)
-
-            with open(file_path2, 'rb') as file:
-                jpg = file.read()
-            result3 = json.loads(result2)
-
             comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
             commentJSON = {'comment' : comment}
             dict1 = json.loads(result2)
@@ -205,21 +143,13 @@ def upload_our_model():
                 db.session.commit()
 
             return json.dumps(merged_dict)
-        
         else:
-            print('no image')
-            selected_jpg, selected_scan_id = selected_scan_jpg.split('yuvraj', 1)
-            print(selected_scan_id)
-
-            # file_path = os.path.join(app.config['UPLOAD_FOLDER'], "no_image.jpg")
-            # with open('no_image.jpg', 'wb') as f:
-            #     f.write(selected_jpg)
-            # print('here')
-
-            # file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "no_image.jpg")
+            existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
+            image_bytes = existing_scan.s_dicom
+            image = Image.open(io.BytesIO(image_bytes))
+            image.save('uploads/image.jpg')
             result = run_with_no_csv('uploads/image.jpg')
 
-            existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
             if existing_scan:
                 scan_details = {
                     'Patient_Name': str(existing_scan.s_name),
@@ -233,7 +163,93 @@ def upload_our_model():
                 }
 
                 json_scan_details = json.dumps(scan_details, indent=4)
+                dict1 = json.loads(json_scan_details)
+                dict2 = json.loads(result)
+                merged_dict = dict1.copy()
+                merged_dict.update(dict2)
 
+            return json.dumps(merged_dict)
+
+@app.route("/upload-our-model", methods=['POST'])
+def upload_our_model():
+    if 'xrayImage' in request.files:
+        image = request.files['xrayImage']
+        selected_scan_id = request.form['uploadedImages']
+
+        if image.filename != '':
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+            image.save(file_path)
+            convert_dcm_to_jpg(file_path)
+            file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+            result = run_with_no_csv(file_path2)
+
+            weights = "densenet121-res224-mimic_ch"
+            mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
+            result2 = dcm_to_json(file_path, weights, mimix_csv)
+
+            with Image.open(file_path2) as img:
+                byte_arr = io.BytesIO()
+                img.save(byte_arr, format='JPEG')
+                jpg = byte_arr.getvalue()
+
+            result3 = json.loads(result2)
+            comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
+            commentJSON = {'comment' : comment}
+            dict1 = json.loads(result2)
+            dict2 = json.loads(result)
+            merged_dict = dict1.copy()
+            merged_dict.update(dict2)
+            merged_dict.update(commentJSON)
+
+            existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
+            if existing_scan is not None:
+                pass # duplicate entry causes issues
+            else:
+                s_pos = ''
+                if result3['View_Position'] == 'PA':
+                    s_pos = 'Frontal'
+                
+                s_orientation = ''
+                if result3['Patient_Orientation'] == 'PA':
+                    s_orientation = 'Frontal'
+
+                new_scan = NewScan(
+                    s_id = result3['Study_ID'],
+                    p_id = result3['Patient_ID'],
+                    s_dicom = jpg,
+                    s_name = result3['Patient_Name'],
+                    s_sex = result3['Patient_Sex'],
+                    s_birthdate = result3['Patient_Birth_Date'],
+                    s_acqdate = result3['Acquisition_Date'],
+                    s_pos = s_pos if s_pos else result3['View_Position'],
+                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
+                    s_age = result3['Patient_Age_at_Time_of_Acquisition'],
+                    s_comment = ''
+                )
+                db.session.add(new_scan)
+                db.session.commit()
+
+            return json.dumps(merged_dict)
+        else:
+            existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
+            image_bytes = existing_scan.s_dicom
+            image = Image.open(io.BytesIO(image_bytes))
+            image.save('uploads/image.jpg')
+            result = run_with_no_csv('uploads/image.jpg')
+
+            if existing_scan:
+                scan_details = {
+                    'Patient_Name': str(existing_scan.s_name),
+                    'Patient_ID': str(existing_scan.p_id),
+                    'Patient_Sex': str(existing_scan.s_sex),
+                    'Patient_Birth_Date': str(existing_scan.s_birthdate),
+                    'Acquisition_Date': str(existing_scan.s_acqdate),
+                    'View_Position': str(existing_scan.s_pos),
+                    'Patient_Orientation': str(existing_scan.s_orientation),
+                    'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
+                }
+
+                json_scan_details = json.dumps(scan_details, indent=4)
                 dict1 = json.loads(json_scan_details)
                 dict2 = json.loads(result)
                 merged_dict = dict1.copy()

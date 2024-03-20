@@ -73,7 +73,7 @@ async function handleFormSubmit(e, url) {
 
     const result2 = await response2.json();
 
-    document.getElementById("output").src = `uploads\\${result2.filename}`;
+    document.getElementById("output").src = `uploads\\${result2.filename}?${new Date().getTime()}`;
 
     const dropdown = document.getElementById('imageOptions');
     dropdown.addEventListener('change', function () {
