@@ -148,7 +148,7 @@ def upload():
             image_bytes = existing_scan.s_dicom
             image = Image.open(io.BytesIO(image_bytes))
             image.save('uploads/image.jpg')
-            result = run_with_no_csv('uploads/image.jpg')
+            result = run_with_no_csv_prebuilt('uploads/image.jpg')
 
             if existing_scan:
                 scan_details = {
