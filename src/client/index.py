@@ -121,11 +121,15 @@ def upload():
             else:
                 s_pos = ''
                 if result3['View_Position'] == 'PA':
-                    s_pos = 'Frontal'
+                    s_pos = 'Posterior-Anterior'
+                elif result3['View_Position'] == 'AP':
+                    s_pos = 'Anterior-Posterior'
                 
                 s_orientation = ''
-                if result3['Patient_Orientation'] == 'PA':
-                    s_orientation = 'Frontal'
+                if result3['Patient_Orientation'] == "['L', 'F']":
+                    s_orientation = 'Left-Frontal'
+                elif result3['Patient_Orientation'] == "['R', 'F']":
+                    s_orientation = 'Right-Frontal'
 
                 new_scan = NewScan(
                     s_id = result3['Study_ID'],
@@ -210,11 +214,15 @@ def upload_our_model():
             else:
                 s_pos = ''
                 if result3['View_Position'] == 'PA':
-                    s_pos = 'Frontal'
+                    s_pos = 'Posterior-Anterior'
+                elif result3['View_Position'] == 'AP':
+                    s_pos = 'Anterior-Posterior'
                 
                 s_orientation = ''
-                if result3['Patient_Orientation'] == 'PA':
-                    s_orientation = 'Frontal'
+                if result3['Patient_Orientation'] == "['L', 'F']":
+                    s_orientation = 'Left-Frontal'
+                elif result3['Patient_Orientation'] == "['R', 'F']":
+                    s_orientation = 'Right-Frontal'
 
                 new_scan = NewScan(
                     s_id = result3['Study_ID'],

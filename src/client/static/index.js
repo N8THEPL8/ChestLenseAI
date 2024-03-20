@@ -35,15 +35,19 @@ async function handleFormSubmit(e, url) {
     p_ad.innerHTML = `${result.Acquisition_Date}`;
 
     const p_pos = document.getElementById('p_pos');
-    if (result.View_Position === 'PA') {
-        p_pos.innerHTML = 'Frontal';
+    if (result.View_Position === 'AP') {
+        p_pos.innerHTML = 'Anterior-Posterior';
+    } else if (result.View_Position === 'PA') {
+        p_pos.innerHTML = 'Posterior-Anterior';
     } else {
         p_pos.innerHTML = `${result.View_Position}`;
     }
 
     const p_orient = document.getElementById('p_orient');
-    if (result.Patient_Orientation === 'PA') {
-        p_orient.innerHTML = 'Frontal';
+    if (result.Patient_Orientation === "['L', 'F']") {
+        p_orient.innerHTML = 'Left-Frontal';
+    } else if (result.Patient_Orientation === "['R', 'F']") {
+        p_orient.innerHTML = 'Right-Frontal';
     } else {
         p_orient.innerHTML = `${result.Patient_Orientation}`;
     }

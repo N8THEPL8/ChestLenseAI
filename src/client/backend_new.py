@@ -37,7 +37,7 @@ import pydicom
 app = Flask(__name__)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
-checkpoint_path = "adam_bce_64_grad_cam_Dense_Net_v3.pth.tar"
+checkpoint_path = "p10-p15_0.00001.pth.tar"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def calculate_age(birth_date, current_date):
@@ -283,11 +283,8 @@ def test_single_image_no_csv(filepath, thresholds, model, device):
     to_tensor = transforms.ToTensor()
     image_tensor = to_tensor(original_image).unsqueeze(0).requires_grad_(True)
     image_tensor = image_tensor.to(device)
-    # Ensure the model is on the correct device and set it to training mode temporarily
     model = model.to(device)
-    model.train()  # Enable tracking of gradients
     prediction = []
-    true_labels = []
     grad_cam_image = []
     # Perform forward pass to get predictions and the last convolutional layer's activations
     with torch.enable_grad():  # Ensure gradients are computed
@@ -305,13 +302,14 @@ def test_single_image_no_csv(filepath, thresholds, model, device):
     print("probability: ", probability)
     print("prediction: ", prediction)
     # Create a table for visualization
-    array1 = ['Atelectasis', probability[0][0], prediction[0] ]
+    array1 = ['Atelectasis', probability[0][0], prediction[0]]
     array2 = ['Cardiomegaly', probability[0][1], prediction[1]]
     array3 = ['Consolidation', probability[0][2], prediction[2]]
     array4 = ['Edema', probability[0][3], prediction[3]]
     array5 = ['No Finding', probability[0][4], prediction[4]]
     array6 = ['Pleural Effusion', probability[0][5], prediction[5]]
-    table = [['Disease', 'Model Probability', 'Model Prediction'], array1, array2, array3, array4, array5, array6]
+    table = [['Disease', 'Model Output', 'Model Prediction'],
+             array1, array2, array3, array4, array5, array6]
     # Print the table
     print("\n")
     print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
@@ -364,18 +362,16 @@ def base64_to_image(base64_str):
 
 # Test Single Image:
 def run_with_no_csv(filepath):
-    #model = MyNeuralNet()
     model = create_densenet121(6)
-    optimizer = torch.optim.Adam(model.parameters(), 0.001)
-    loaded_model, loaded_optimizer = local_load_checkpoint(model, optimizer,device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+    loaded_model, loaded_optimizer = local_load_checkpoint(model, optimizer, device)
     loaded_model.eval()
     loaded_model.to(device)
     #thresholds are old and determine if model predictions are 1 or 0 based on model probability
-    thresholds = [0.53880334, 0.48418066, 0.36754248, 0.5815063, 0.54026645, 0.47844747]
+    thresholds = [0.20584758, 0.1647099, 0.04419467, 0.06687264, 0.40707874, 0.18278009]
     diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
     print("thresholds: ", thresholds)
-    #is you use test_single_image or test_single_image_no_csv depends on if you have the true labels
-    original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model, device)
+    original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, loaded_model, device)
     for x in range(0,6):
         plot_images(original_image, grad_cam_image[x], diseaseNames[x])
     grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
@@ -389,8 +385,6 @@ def run_with_no_csv(filepath):
     data = { "diseasesData": diseases_data }
     # Convert the structured data to a JSON string
     json_data = json.dumps(data, indent=4)
-    with open('diseases_predictions_and_images.json', 'w') as json_file:
-        json.dump(data, json_file, indent=4)
     return json_data
 
 def convert_dcm_to_jpg(file_path):
