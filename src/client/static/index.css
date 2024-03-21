@@ -36,6 +36,9 @@ h1 {
 .form-group {
     margin-bottom: 20px;
 }
+.hidden {
+    display: none;
+}
 label {
     display: block;
     font-weight: bold;
