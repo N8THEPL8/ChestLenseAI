@@ -18,6 +18,7 @@ app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://sql5688745:t11rn2ntwf@sql5.freesqldatabase.com:3306/sql5688745'
 db = SQLAlchemy(app)
 
+# Models for the database
 class Doctor(db.Model):
     __tablename__ = 'doctor_table'
     d_id = db.Column(db.String(100), primary_key=True)
@@ -43,9 +44,9 @@ class NewScan(db.Model):
     s_birthdate = db.Column(db.String(100), nullable=True)
     s_acqdate = db.Column(db.String(100), nullable=True)
     s_pos = db.Column(db.String(100), nullable=True)
-    s_orientation = db.Column(db.String(100), nullable=True)
     s_age = db.Column(db.String(100), nullable=True)
 
+# Checks for a valid username and password in the database
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -55,6 +56,7 @@ def login():
             return redirect(url_for('doctor'))
     return render_template('login.html')
 
+# Determines which doctor is logged in and displays the corresponding patients
 @app.route("/doctor") 
 def doctor():
     if 'd_id' in session:
@@ -63,6 +65,7 @@ def doctor():
         return render_template("doctor.html", patients=patients)
     return redirect(url_for('login'))
 
+# Updates the comment for a scan in the database
 @app.route('/comments', methods=['POST'])
 def comments():
     data = request.json
@@ -72,6 +75,7 @@ def comments():
     db.session.commit()
     return jsonify({'scan_ID' : scan_id, 'comment': textarea_content})
 
+# Displays the scans for a patient
 @app.route('/index/<patient_id>')
 def index(patient_id):
     global patientID
@@ -82,20 +86,25 @@ def index(patient_id):
         return render_template('index.html', patient=patient, scans=scans)
     return redirect(url_for('doctor'))
 
-# change this once we have prebuilt
+# Prebuilt model
 @app.route("/upload", methods=['POST'])
 def upload():
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
         selected_scan_id = request.form['uploadedImages']
 
+        # Uploads the image and runs the model
         if image.filename != '':
+            # Save the dicom image and convert it to jpg
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
             image.save(file_path)
             convert_dcm_to_jpg(file_path)
+
+            # Run the model with the jpg image
             file_path2 = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
             result = run_with_no_csv_prebuilt(file_path2)
 
+            # Save the information of the scan to the database
             weights = "densenet121-res224-mimic_ch"
             mimix_csv = "mimic-cxr-2.0.0-chexpert.csv"
             result2 = dcm_to_json(file_path, weights, mimix_csv)
@@ -105,10 +114,10 @@ def upload():
                 img.save(byte_arr, format='JPEG')
                 jpg = byte_arr.getvalue()
 
+            # Merge json results
             result3 = json.loads(result2)
             comment = NewScan.query.filter_by(s_id=result3['Study_ID']).value(NewScan.s_comment)
             commentJSON = {'comment' : comment}
-            print(comment)
             dict1 = json.loads(result2)
             dict2 = json.loads(result)
             merged_dict = dict1.copy()
@@ -124,12 +133,6 @@ def upload():
                     s_pos = 'Posterior-Anterior'
                 elif result3['View_Position'] == 'AP':
                     s_pos = 'Anterior-Posterior'
-                
-                s_orientation = ''
-                if result3['Patient_Orientation'] == "['L', 'F']":
-                    s_orientation = 'Left-Frontal'
-                elif result3['Patient_Orientation'] == "['R', 'F']":
-                    s_orientation = 'Right-Frontal'
 
                 new_scan = NewScan(
                     s_id = result3['Study_ID'],
@@ -140,7 +143,6 @@ def upload():
                     s_birthdate = result3['Patient_Birth_Date'],
                     s_acqdate = result3['Acquisition_Date'],
                     s_pos = s_pos if s_pos else result3['View_Position'],
-                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
                     s_age = result3['Patient_Age_at_Time_of_Acquisition'],
                     s_comment = ''
                 )
@@ -148,7 +150,10 @@ def upload():
                 db.session.commit()
 
             return json.dumps(merged_dict)
+        
+        # Runs the model on an existing scan
         else:
+            # Get the existing scan and run the model
             existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
             image_bytes = existing_scan.s_dicom
             image = Image.open(io.BytesIO(image_bytes))
@@ -163,7 +168,6 @@ def upload():
                     'Patient_Birth_Date': str(existing_scan.s_birthdate),
                     'Acquisition_Date': str(existing_scan.s_acqdate),
                     'View_Position': str(existing_scan.s_pos),
-                    'Patient_Orientation': str(existing_scan.s_orientation),
                     'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
                 }
                 comment = NewScan.query.filter_by(s_id=selected_scan_id).value(NewScan.s_comment)
@@ -177,12 +181,14 @@ def upload():
 
             return json.dumps(merged_dict)
 
+# Our model
 @app.route("/upload-our-model", methods=['POST'])
 def upload_our_model():
     if 'xrayImage' in request.files:
         image = request.files['xrayImage']
         selected_scan_id = request.form['uploadedImages']
 
+        # Uploads the image and runs the model
         if image.filename != '':
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
             image.save(file_path)
@@ -217,12 +223,6 @@ def upload_our_model():
                     s_pos = 'Posterior-Anterior'
                 elif result3['View_Position'] == 'AP':
                     s_pos = 'Anterior-Posterior'
-                
-                s_orientation = ''
-                if result3['Patient_Orientation'] == "['L', 'F']":
-                    s_orientation = 'Left-Frontal'
-                elif result3['Patient_Orientation'] == "['R', 'F']":
-                    s_orientation = 'Right-Frontal'
 
                 new_scan = NewScan(
                     s_id = result3['Study_ID'],
@@ -233,7 +233,6 @@ def upload_our_model():
                     s_birthdate = result3['Patient_Birth_Date'],
                     s_acqdate = result3['Acquisition_Date'],
                     s_pos = s_pos if s_pos else result3['View_Position'],
-                    s_orientation = s_orientation if s_orientation else result3['Patient_Orientation'],
                     s_age = result3['Patient_Age_at_Time_of_Acquisition'],
                     s_comment = ''
                 )
@@ -241,6 +240,8 @@ def upload_our_model():
                 db.session.commit()
 
             return json.dumps(merged_dict)
+        
+        # Runs the model on an existing scan
         else:
             existing_scan = NewScan.query.filter_by(s_id=selected_scan_id).first()
             image_bytes = existing_scan.s_dicom
@@ -256,7 +257,6 @@ def upload_our_model():
                     'Patient_Birth_Date': str(existing_scan.s_birthdate),
                     'Acquisition_Date': str(existing_scan.s_acqdate),
                     'View_Position': str(existing_scan.s_pos),
-                    'Patient_Orientation': str(existing_scan.s_orientation),
                     'Patient_Age_at_Time_of_Acquisition': str(existing_scan.s_age)
                 }
                 comment = NewScan.query.filter_by(s_id=selected_scan_id).value(NewScan.s_comment)
