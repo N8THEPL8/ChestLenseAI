@@ -61,15 +61,6 @@ async function handleFormSubmit(e, url) {
         p_pos.innerHTML = `${result.View_Position}`;
     }
 
-    const p_orient = document.getElementById('p_orient');
-    if (result.Patient_Orientation === "['L', 'F']") {
-        p_orient.innerHTML = 'Left-Frontal';
-    } else if (result.Patient_Orientation === "['R', 'F']") {
-        p_orient.innerHTML = 'Right-Frontal';
-    } else {
-        p_orient.innerHTML = `${result.Patient_Orientation}`;
-    }
-
     const p_age = document.getElementById('p_age');
     p_age.innerHTML = `${result.Patient_Age_at_Time_of_Acquisition}`;
 
