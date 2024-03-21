@@ -1,9 +1,25 @@
+/*
+ * Handles form submission based on the button clicked:
+ * If the "Prebuilt" button is clicked, a POST call is generated to '/upload'.
+ * If the "Our model" button is clicked, a POST call is generated to '/upload-our-model'.
+ */
 document.querySelector('#uploadForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const action = e.submitter.value === 'Prebuilt' ? '/upload' : '/upload-our-model';
     await handleFormSubmit(e, action);
 });
 
+
+/*
+ * Handles form submission by sending a POST request to the specified URL with form data.
+ * 
+ * Parameters:
+ * - e: The event object representing the form submission.
+ * - url: The URL to which the POST request will be sent.
+ * 
+ * Returns:
+ * - A Promise that resolves to the JSON response from the server.
+ */
 async function handleFormSubmit(e, url) {
     const formData = new FormData(e.target);
 
@@ -11,11 +27,13 @@ async function handleFormSubmit(e, url) {
         method: 'POST',
         body: formData
     });
-
     const result = await response.json();
 
-    document.getElementById("scanId").value = result.Study_ID;
+    document.getElementById("scanId").value = result.Study_ID; // updating Scan ID
 
+    /* Updates the HTML content of elements with specific IDs 
+     * using data from the result object.
+    */
     const existing_comment = document.getElementById('output2');
     existing_comment.innerHTML = result.comment ? `${result.comment}` : '';
 
@@ -73,12 +91,12 @@ async function handleFormSubmit(e, url) {
     const eff_actual = document.getElementById('eff_actual');
     eff_actual.innerHTML = `${result.diseasesData[5].prediction}`;
 
+    // Sends a GET request to '/fetchimage' endpoint to retrieve image data.
     const response2 = await fetch('/fetchimage');
-
     const result2 = await response2.json();
-
     document.getElementById("output").src = `uploads\\${result2.filename}?${new Date().getTime()}`;
 
+    // Tracks for changes in the dropdown menu and updates the displayed image accordingly
     const dropdown = document.getElementById('imageOptions');
     dropdown.addEventListener('change', function () {
         console.log('clicked')
@@ -101,9 +119,10 @@ async function handleFormSubmit(e, url) {
             imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[5].gradCamImage;
         }
     });
-
+    
+    // Handles form submission for adding comments
     document.getElementById("commentsForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // Prevent the form from submitting normally
+        event.preventDefault(); 
 
         var textareaContent = document.getElementById("output2").value;
         var scanId = document.getElementById("scanId").value;
@@ -135,5 +154,6 @@ async function handleFormSubmit(e, url) {
         });
     });
     
+    // Sends a DELETE request to '/deleteimage' endpoint to delete an image
     const response3 = await fetch('/deleteimage');
 }
