@@ -107,7 +107,6 @@ def dcm_patient_data(path_file):
     patient_data.update({"Acquisition_Date": str(patient_acquisition_date)})
     patient_data.update({"Instance_Number": str(dcm_data.InstanceNumber)})
     patient_data.update({"View_Position": str(dcm_data.ViewPosition)})
-    patient_data.update({"Patient_Orientation": str(dcm_data.PatientOrientation)})
     patient_data.update({"Patient_Age_at_Time_of_Acquisition": str(acquisition_age)})
     return patient_data
 
