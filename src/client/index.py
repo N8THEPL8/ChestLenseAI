@@ -124,30 +124,32 @@ def upload():
             merged_dict.update(dict2)
             merged_dict.update(commentJSON)
 
-            existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
-            if existing_scan is not None:
-                pass # duplicate entry causes issues
-            else:
-                s_pos = ''
-                if result3['View_Position'] == 'PA':
-                    s_pos = 'Posterior-Anterior'
-                elif result3['View_Position'] == 'AP':
-                    s_pos = 'Anterior-Posterior'
+            no_save = 'noSave' in request.form
+            if no_save == False:
+                existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
+                if existing_scan is not None:
+                    pass # duplicate entry causes issues
+                else:
+                    s_pos = ''
+                    if result3['View_Position'] == 'PA':
+                        s_pos = 'Posterior-Anterior'
+                    elif result3['View_Position'] == 'AP':
+                        s_pos = 'Anterior-Posterior'
 
-                new_scan = NewScan(
-                    s_id = result3['Study_ID'],
-                    p_id = result3['Patient_ID'],
-                    s_dicom = jpg,
-                    s_name = result3['Patient_Name'],
-                    s_sex = result3['Patient_Sex'],
-                    s_birthdate = result3['Patient_Birth_Date'],
-                    s_acqdate = result3['Acquisition_Date'],
-                    s_pos = s_pos if s_pos else result3['View_Position'],
-                    s_age = result3['Patient_Age_at_Time_of_Acquisition'],
-                    s_comment = ''
-                )
-                db.session.add(new_scan)
-                db.session.commit()
+                    new_scan = NewScan(
+                        s_id = result3['Study_ID'],
+                        p_id = result3['Patient_ID'],
+                        s_dicom = jpg,
+                        s_name = result3['Patient_Name'],
+                        s_sex = result3['Patient_Sex'],
+                        s_birthdate = result3['Patient_Birth_Date'],
+                        s_acqdate = result3['Acquisition_Date'],
+                        s_pos = s_pos if s_pos else result3['View_Position'],
+                        s_age = result3['Patient_Age_at_Time_of_Acquisition'],
+                        s_comment = ''
+                    )
+                    db.session.add(new_scan)
+                    db.session.commit()
 
             return json.dumps(merged_dict)
         
@@ -214,30 +216,32 @@ def upload_our_model():
             merged_dict.update(dict2)
             merged_dict.update(commentJSON)
 
-            existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
-            if existing_scan is not None:
-                pass # duplicate entry causes issues
-            else:
-                s_pos = ''
-                if result3['View_Position'] == 'PA':
-                    s_pos = 'Posterior-Anterior'
-                elif result3['View_Position'] == 'AP':
-                    s_pos = 'Anterior-Posterior'
+            no_save = 'noSave' in request.form
+            if no_save == False:
+                existing_scan = NewScan.query.filter_by(s_id=result3['Study_ID']).first()
+                if existing_scan is not None:
+                    pass # duplicate entry causes issues
+                else:
+                    s_pos = ''
+                    if result3['View_Position'] == 'PA':
+                        s_pos = 'Posterior-Anterior'
+                    elif result3['View_Position'] == 'AP':
+                        s_pos = 'Anterior-Posterior'
 
-                new_scan = NewScan(
-                    s_id = result3['Study_ID'],
-                    p_id = result3['Patient_ID'],
-                    s_dicom = jpg,
-                    s_name = result3['Patient_Name'],
-                    s_sex = result3['Patient_Sex'],
-                    s_birthdate = result3['Patient_Birth_Date'],
-                    s_acqdate = result3['Acquisition_Date'],
-                    s_pos = s_pos if s_pos else result3['View_Position'],
-                    s_age = result3['Patient_Age_at_Time_of_Acquisition'],
-                    s_comment = ''
-                )
-                db.session.add(new_scan)
-                db.session.commit()
+                    new_scan = NewScan(
+                        s_id = result3['Study_ID'],
+                        p_id = result3['Patient_ID'],
+                        s_dicom = jpg,
+                        s_name = result3['Patient_Name'],
+                        s_sex = result3['Patient_Sex'],
+                        s_birthdate = result3['Patient_Birth_Date'],
+                        s_acqdate = result3['Acquisition_Date'],
+                        s_pos = s_pos if s_pos else result3['View_Position'],
+                        s_age = result3['Patient_Age_at_Time_of_Acquisition'],
+                        s_comment = ''
+                    )
+                    db.session.add(new_scan)
+                    db.session.commit()
 
             return json.dumps(merged_dict)
         
