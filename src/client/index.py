@@ -72,8 +72,10 @@ def comments():
     textarea_content = data.get('textarea_content')
     scan_id = data.get('scan_id')
     comment_updated = NewScan.query.filter_by(s_id=scan_id).update({'s_comment': textarea_content})
-    db.session.commit()
-    return jsonify({'scan_ID' : scan_id, 'comment': textarea_content})
+    if comment_updated:
+        db.session.commit()
+        return jsonify({'scan_ID' : scan_id, 'comment': textarea_content})
+    return jsonify({'Error' : 'No Scan ID provided'})
 
 # Displays the scans for a patient
 @app.route('/index/<patient_id>')
