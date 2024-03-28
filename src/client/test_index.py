@@ -69,7 +69,7 @@ class TestIndex(unittest.TestCase):
             response_data = response.get_json()
             self.assertIn('Error', response_data)
 
-    # Testign for index(patient_id) or route (''/index/<patient_id>'')
+    # Testing for index(patient_id) or route ('/index/<patient_id>')
     def test_index_patient_found(self):
         with self.app as client:
             response = client.get('/index/17007063')
