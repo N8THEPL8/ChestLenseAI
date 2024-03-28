@@ -1,11 +1,13 @@
 import unittest
 import index
+import json
 from index import app, Patient, NewScan, db
 from flask import render_template, redirect, url_for, session
 
 class TestIndex(unittest.TestCase):
     def setUp(self):
         self.app = index.app.test_client()
+        self.app.testing = True
 
     def test_fetch_image(self):
         response = self.app.get('/fetchimage')
@@ -87,6 +89,48 @@ class TestIndex(unittest.TestCase):
             response = client.get('/index/999')
             self.assertEqual(response.status_code, 302)
             self.assertEqual(response.location, '/doctor')
+
+    # Testing for upload() or route ('/upload')
+    def test_upload_new_image(self):
+        with open('../demo_images/Steven.dcm', 'rb') as img:
+            data = {
+                'xrayImage': (img, 'Steven.dcm'),
+                'uploadedImages': '17007063'
+            }
+            response = self.app.post('/upload', content_type='multipart/form-data', data=data)
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data['Study_ID'], '50712315')
+        self.assertEqual(response_data['Patient_ID'], '17007063')
+        self.assertEqual(response_data['Patient_Name'], 'Steven Sanders')
+        self.assertEqual(response_data['Patient_Sex'], 'M')
+        self.assertEqual(response_data['Patient_Birth_Date'], '1989-01-19')
+        self.assertEqual(response_data['Patient_Current_Age'], '35 years, 2 months, 9 days')
+        self.assertEqual(response_data['Acquisition_Date'], '2009-11-01')
+        self.assertEqual(response_data['View_Position'], 'AP')
+        self.assertEqual(response_data['Patient_Age_at_Time_of_Acquisition'], '20 years, 9 months, 13 days')
+        self.assertEqual(response_data['comment'], 'Updated comment')
+
+    # Testing for upload_our_model() or route ('/upload-our-model')
+    def test_upload_our_model_new_image(self):
+        with open('../demo_images/Steven.dcm', 'rb') as img:
+            data = {
+                'xrayImage': (img, 'Steven.dcm'),
+                'uploadedImages': '17007063'
+            }
+            response = self.app.post('/upload-our-model', content_type='multipart/form-data', data=data)
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data['Study_ID'], '50712315')
+        self.assertEqual(response_data['Patient_ID'], '17007063')
+        self.assertEqual(response_data['Patient_Name'], 'Steven Sanders')
+        self.assertEqual(response_data['Patient_Sex'], 'M')
+        self.assertEqual(response_data['Patient_Birth_Date'], '1989-01-19')
+        self.assertEqual(response_data['Patient_Current_Age'], '35 years, 2 months, 9 days')
+        self.assertEqual(response_data['Acquisition_Date'], '2009-11-01')
+        self.assertEqual(response_data['View_Position'], 'AP')
+        self.assertEqual(response_data['Patient_Age_at_Time_of_Acquisition'], '20 years, 9 months, 13 days')
+        self.assertEqual(response_data['comment'], 'Updated comment')
 
 if __name__ == '__main__':
     unittest.main()
