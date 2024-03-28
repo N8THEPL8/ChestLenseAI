@@ -10,6 +10,7 @@
 <body>
     <div class="wrapper">
         <form action="" method="post">
+            <img class="logo" src="{{ url_for('static', filename='stylesheets/logo.png') }}" alt="Logo">
             <h1>Login</h1>
             <div class="input-box">
                 <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}" required>

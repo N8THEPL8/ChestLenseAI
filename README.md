@@ -23,16 +23,22 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
     python3 index.py
     ```
 
+5. **Go to http://localhost:9874.**
+
+6. **Demo username: doctor3@gmail.com, password: password3.**
+
+7. **Demo DICOM images available in src/demo_images.**
+
 ## References
 
 1. **OpenCV**
 
-    https://github.com/opencv/opencv-python
+    https://github.com/opencv/opencv-python?tab=MIT-1-ov-file
 
 2. **PyTorch Grad Cam**
 
-    https://github.com/jacobgil/pytorch-grad-cam
+    https://github.com/jacobgil/pytorch-grad-cam?tab=MIT-1-ov-file
 
 3. **TorchXRayVision**
 
-    https://github.com/mlmed/torchxrayvision
+    https://github.com/mlmed/torchxrayvision?tab=Apache-2.0-1-ov-file
