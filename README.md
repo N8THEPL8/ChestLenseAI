@@ -42,3 +42,15 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 3. **TorchXRayVision**
 
     https://github.com/mlmed/torchxrayvision?tab=Apache-2.0-1-ov-file
+
+4. **MIMIC Dataset Resources**
+
+    https://doi.org/10.13026/jsn5-t979
+
+    https://physionet.org/content/mimic-cxr/2.0.0/
+
+    Johnson, A., Lungren, M., Peng, Y., Lu, Z., Mark, R., Berkowitz, S., & Horng, S. (2024). MIMIC-CXR-JPG - chest radiographs with structured labels (version 2.1.0). PhysioNet.
+
+    Johnson, A. E., Pollard, T. J., Greenbaum, N. R., Lungren, M. P., Deng, C. Y., Peng, Y., ... & Horng, S. (2019). MIMIC-CXR-JPG, a large publicly available database of labeled chest radiographs. arXiv preprint arXiv:1901.07042.
+
+    Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation [Online]. 101 (23), pp. e215–e220.
