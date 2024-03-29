@@ -29,6 +29,24 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 
 7. **Demo DICOM images available in src/demo_images.**
 
+## Workflow Diagrams
+
+![alt tex](src/demo_diagrams/frontend.png)
+
+![alt tex](src/demo_diagrams/backend.png)
+
+## Data Split
+
+Dataset: MIMIC-CXR-JPG
+
+The dataset contains 10 folders p10-p19 and here is the data split:
+
+Training (70%): Folders 10-16
+
+Validation (10%): Folder 17
+
+Testing (20%): Folders 18 and 19
+
 ## References
 
 1. **OpenCV**
