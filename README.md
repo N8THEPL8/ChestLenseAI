@@ -31,6 +31,14 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 
 7. **Demo DICOM images available in src/demo_images. Example: src/demo_images/Alec.dcm**
 
+## Demo
+
+![alt tex](src/demo_diagrams/login.png)
+
+![alt tex](src/demo_diagrams/doctor.png)
+
+![alt tex](src/demo_diagrams/index.png)
+
 ## Workflow Diagrams
 
 ![alt tex](src/demo_diagrams/frontend.png)
