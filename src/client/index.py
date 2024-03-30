@@ -291,4 +291,4 @@ def delete_image():
     return {"true": True}
 
 if __name__ == "__main__":
-    app.run(host='localhost', port=9874, debug=True)
+    app.run(host='localhost', port=9874)

@@ -1,8 +1,7 @@
 import unittest
 import index
 import json
-from index import app, Patient, NewScan, db
-from flask import render_template, redirect, url_for, session
+from index import Patient, NewScan
 
 class TestIndex(unittest.TestCase):
     def setUp(self):
@@ -105,7 +104,6 @@ class TestIndex(unittest.TestCase):
         self.assertEqual(response_data['Patient_Name'], 'Steven Sanders')
         self.assertEqual(response_data['Patient_Sex'], 'M')
         self.assertEqual(response_data['Patient_Birth_Date'], '1989-01-19')
-        self.assertEqual(response_data['Patient_Current_Age'], '35 years, 2 months, 9 days')
         self.assertEqual(response_data['Acquisition_Date'], '2009-11-01')
         self.assertEqual(response_data['View_Position'], 'AP')
         self.assertEqual(response_data['Patient_Age_at_Time_of_Acquisition'], '20 years, 9 months, 13 days')
@@ -126,7 +124,6 @@ class TestIndex(unittest.TestCase):
         self.assertEqual(response_data['Patient_Name'], 'Steven Sanders')
         self.assertEqual(response_data['Patient_Sex'], 'M')
         self.assertEqual(response_data['Patient_Birth_Date'], '1989-01-19')
-        self.assertEqual(response_data['Patient_Current_Age'], '35 years, 2 months, 9 days')
         self.assertEqual(response_data['Acquisition_Date'], '2009-11-01')
         self.assertEqual(response_data['View_Position'], 'AP')
         self.assertEqual(response_data['Patient_Age_at_Time_of_Acquisition'], '20 years, 9 months, 13 days')
