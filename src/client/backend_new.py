@@ -1,19 +1,14 @@
 from flask import Flask
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import csv
-from torch.optim import SGD
 from skimage import io as skio
-from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import accuracy_score
 import torchvision.transforms as transforms
 from PIL import Image
-import pandas as pd
 from skimage import io
 import cv2 as cv
 import os
@@ -22,8 +17,6 @@ import base64
 import json
 import skimage.io as skio
 import io
-from sklearn.metrics import roc_curve, auc, f1_score
-from sklearn.preprocessing import label_binarize
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
@@ -37,7 +30,7 @@ import pydicom
 app = Flask(__name__)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(current_dir, 'uploads')
-checkpoint_path = "p10-p15_0.00001.pth.tar"
+checkpoint_path = "Final_Weights.pth.tar"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def calculate_age(birth_date, current_date):
@@ -168,6 +161,16 @@ def create_json(original_dict):
         json.dump(new_dict, out_file, indent=4)
     return json.dumps(new_dict, indent=4)
 
+def convert_dcm_to_jpg(file_path):
+    ds = pydicom.dcmread(file_path)
+    new_image = ds.pixel_array.astype(float)
+    scaled_image = (np.maximum(new_image, 0) / new_image.max()) * 255.0
+    scaled_image = np.uint8(scaled_image)
+    final_image = Image.fromarray(scaled_image)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
+    final_image.save(file_path)
+    return
+
 def dcm_to_json(file_path, weight_string, csv_file_path):
     convert_dcm_to_jpg(file_path)
     patient_data = dcm_patient_data(file_path)
@@ -177,6 +180,7 @@ def dcm_to_json(file_path, weight_string, csv_file_path):
     json_value = create_json([patient_data, model_output, actual_tags])
     return json_value
 
+#Creates the densenet model for the given number of classes
 def create_densenet121(num_classes):
     # Load the DenseNet121 model without pre-trained weights
     model = models.densenet121(weights=None)
@@ -185,9 +189,10 @@ def create_densenet121(num_classes):
     model.classifier = nn.Linear(num_ftrs, num_classes)
     return model
 
+#Function used to create a Grad-Cam image for a specific disease 
 def generate_gradcam(model, input_tensor, original_image, target_category=None):
-    target_layers = model.features.denseblock4.denselayer16.conv2
-    #target_layers = model.features[-1]
+    # Select the last layer of the model.
+    target_layers = model.features[-1]
     # Initialize Grad-CAM with the specified target layers
     cam = GradCAM(model=model, target_layers=[target_layers])  # Encapsulate target_layers in a list
     # Define targets based on the specified target category
@@ -195,18 +200,25 @@ def generate_gradcam(model, input_tensor, original_image, target_category=None):
     # Generate CAM mask
     grayscale_cam = cam(input_tensor=input_tensor, targets=targets)[0, :]
     # Create visualization with the specified alpha for the overlay transparency
-    visualization = show_cam_on_image(np.array(original_image) / 255.0, grayscale_cam, use_rgb=True, alpha=0.3) # Adjust alpha as needed
+    visualization = show_cam_on_image(np.array(original_image) / 255.0, grayscale_cam, use_rgb=True, alpha = 0.3) # Adjust alpha as needed
     return visualization
 
 # Function to load checkpoint
-def local_load_checkpoint(model, optimizer,device):
+def local_load_checkpoint(model, optimizer, device):
     checkpoint = torch.load(checkpoint_path,map_location=torch.device(device))
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
     model.eval()  # Set the model to evaluation mode
-    print(f"Checkpoint loaded from '{checkpoint_path}'")
+    # print(f"Checkpoint loaded from '{checkpoint_path}'")
     return model, optimizer
 
+# Function to save checkpoint
+def save_checkpoint(model, optimizer):
+    checkpoint = {'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}
+    torch.save(checkpoint, checkpoint_path)
+    # print(f"Checkpoint saved to '{checkpoint_path}'")
+
+#Overlays mask on image used for Grad Cam
 def show_cam_on_image(img, mask, use_rgb=True, alpha=0.5):
     # Convert mask to a heatmap
     heatmap = cv.applyColorMap(np.uint8(255 * mask), cv.COLORMAP_JET)
@@ -256,9 +268,9 @@ def test_single_image(filepath, csv_file_path, thresholds, model, device):
     # Compare predictions and true labels
     for i in range(6):
         prediction.append(1 if probability[0][i] >= thresholds[i] else 0)
-    print("probability: ", probability)
-    print("prediction: ", prediction)
-    print("true lables: ", true_labels)
+    # print("probability: ", probability)
+    # print("prediction: ", prediction)
+    # print("true lables: ", true_labels)
     # Create a table for visualization
     array1 = ['Atelectasis', probability[0][0], prediction[0], true_labels[0]]
     array2 = ['Cardiomegaly', probability[0][1], prediction[1], true_labels[1]]
@@ -268,10 +280,11 @@ def test_single_image(filepath, csv_file_path, thresholds, model, device):
     array6 = ['Pleural Effusion', probability[0][5], prediction[5], true_labels[5]]
     table = [['Disease', 'Model Probability', 'Model Prediction', 'True Labels'], array1, array2, array3, array4, array5, array6]
     # Print the table
-    print("\n")
-    print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+    # print("\n")
+    # print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
     return original_image, grad_cam_image, prediction
 
+#Runs our model on a single image and returns disease prediction and grad cam images
 def test_single_image_no_csv(filepath, thresholds, model, device):
     # Read and preprocess the image
     image = cv.imread(filepath)
@@ -293,13 +306,11 @@ def test_single_image_no_csv(filepath, thresholds, model, device):
         _, target_category = torch.max(outputs, 1)
         for x in range (0,6):
             grad_cam_image.append(generate_gradcam(model,image_tensor, original_image, target_category=x))
-    # Optionally, switch back to evaluation mode
-    model.eval()
     # Compare predictions and true labels
     for i in range(6):
         prediction.append(1 if probability[0][i] >= thresholds[i] else 0)
-    print("probability: ", probability)
-    print("prediction: ", prediction)
+    # print("probability: ", probability)
+    # print("prediction: ", prediction)
     # Create a table for visualization
     array1 = ['Atelectasis', probability[0][0], prediction[0]]
     array2 = ['Cardiomegaly', probability[0][1], prediction[1]]
@@ -307,13 +318,13 @@ def test_single_image_no_csv(filepath, thresholds, model, device):
     array4 = ['Edema', probability[0][3], prediction[3]]
     array5 = ['No Finding', probability[0][4], prediction[4]]
     array6 = ['Pleural Effusion', probability[0][5], prediction[5]]
-    table = [['Disease', 'Model Output', 'Model Prediction'],
-             array1, array2, array3, array4, array5, array6]
+    table = [['Disease', 'Model Output', 'Model Prediction'], array1, array2, array3, array4, array5, array6]
     # Print the table
-    print("\n")
-    print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+    # print("\n")
+    # print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
     return original_image, grad_cam_image, prediction
 
+# Plots original and grad cam image side by side for easy comparison
 def plot_images(original_image, grad_cam_image, diseaseName):
     # Create a figure with 2 subplots
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
@@ -326,8 +337,39 @@ def plot_images(original_image, grad_cam_image, diseaseName):
     axs[1].set_title('Grad-CAM Heatmap for ' + diseaseName)
     axs[1].axis('off')  # Hide the axes ticks
     # Display the plot
-    # plt.show()
+    plt.show()
 
+# These functions are shared between backend and frontend and are used to convert images to byte array so they can be passed in a json
+# Converts JPG image to RGB and resizes
+def jpg256(jpg_path):
+    image = skio.imread(jpg_path)
+    RGB = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    new_image = Image.fromarray(RGB)
+    new_image = new_image.resize((256, 256))
+    return new_image
+
+#Converts jpg images to tensor
+def Tensor256(jpg_path):
+    image = skio.imread(jpg_path)
+    RGB = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    new_image = Image.fromarray(RGB)
+    new_image = new_image.resize((256, 256))
+    to_tensor = transforms.ToTensor()
+    image_tensor = to_tensor(new_image)
+    return image_tensor
+
+#Converts an image to RGB and resizes then converts to tensor
+def Grad_Tensor256(jpg_path,device):
+    image = skio.imread(jpg_path)
+    RGB = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    new_image = Image.fromarray(RGB)
+    new_image = new_image.resize((256, 256))
+    to_tensor = transforms.ToTensor()
+    new_image =  to_tensor(new_image).unsqueeze(0).requires_grad_(True)
+    image_tensor = image_tensor.to(device)
+    return to_tensor
+
+#converts JPEG to a byte representation
 def image_to_base64(image_array):
     image = Image.fromarray(np.uint8(image_array)).convert('RGB')
     img_byte_arr = io.BytesIO()
@@ -353,26 +395,27 @@ def byte_array_to_image(byte_array):
     img = Image.open(img_byte_arr)
     return img
 
-# Anthony's function to convert base64 string to image
+# Function to convert base64 string to image
 def base64_to_image(base64_str):
     img_bytes = base64.b64decode(base64_str)
     img = Image.open(io.BytesIO(img_bytes))
     return img
 
-# Test Single Image:
+#Runs our model on a single image and returns disease prediction and grad cam images
+#Then prints and plots results
 def run_with_no_csv(filepath):
     model = create_densenet121(6)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
     loaded_model, loaded_optimizer = local_load_checkpoint(model, optimizer, device)
     loaded_model.eval()
     loaded_model.to(device)
-    #thresholds are old and determine if model predictions are 1 or 0 based on model probability
-    thresholds = [0.20584758, 0.1647099, 0.04419467, 0.06687264, 0.40707874, 0.18278009]
+    # Thresholds determine if model predictions are 1 or 0 based on model probability
+    thresholds = [0.17107886, 0.15799165, 0.03852078, 0.09797211, 0.3499906, 0.1622753]
     diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
-    print("thresholds: ", thresholds)
+    #print("thresholds: ", thresholds)
     original_image, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, loaded_model, device)
-    for x in range(0,6):
-        plot_images(original_image, grad_cam_image[x], diseaseNames[x])
+    # for x in range(0,6):
+    #     plot_images(original_image, grad_cam_image[x], diseaseNames[x])
     grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
     diseases_data = []
     for i, disease_name in enumerate(diseaseNames):
@@ -385,13 +428,3 @@ def run_with_no_csv(filepath):
     # Convert the structured data to a JSON string
     json_data = json.dumps(data, indent=4)
     return json_data
-
-def convert_dcm_to_jpg(file_path):
-    ds = pydicom.dcmread(file_path)
-    new_image = ds.pixel_array.astype(float)
-    scaled_image = (np.maximum(new_image, 0) / new_image.max()) * 255.0
-    scaled_image = np.uint8(scaled_image)
-    final_image = Image.fromarray(scaled_image)
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], "image.jpg")
-    final_image.save(file_path)
-    return

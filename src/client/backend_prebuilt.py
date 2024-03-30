@@ -77,8 +77,8 @@ def test_single_image_no_csv(filepath, thresholds, model):
         image = torch.from_numpy(image).unsqueeze(0).to(device)
         outputs = model(image)
         probability = outputs[0, selected_indexes].cpu().numpy()
-        print("Output: ", outputs)
-        print("Probability: ", probability)
+        # print("Output: ", outputs)
+        # print("Probability: ", probability)
     for index in selected_indexes:
         grad_cam_image = generate_gradcam(model, image, filepath, index)
         grad_cam_images.append(grad_cam_image)
@@ -100,8 +100,8 @@ def test_single_image_no_csv(filepath, thresholds, model):
         prediction.insert(4, 0)
         probability = probability.astype(object)
         probability = np.insert(probability, 4, "-")
-    print("probability: ", probability)
-    print("prediction: ", prediction)
+    # print("probability: ", probability)
+    # print("prediction: ", prediction)
     # Create a table for visualization
     array1 = ['Atelectasis', probability[0], prediction[0]]
     array2 = ['Cardiomegaly', probability[1], prediction[1]]
@@ -109,11 +109,10 @@ def test_single_image_no_csv(filepath, thresholds, model):
     array4 = ['Edema', probability[3], prediction[3]]
     array5 = ['No Finding', probability[4], prediction[4]]
     array6 = ['Pleural Effusion', probability[5], prediction[5]]
-    table = [['Disease', 'Model Output', 'Model Prediction'],
-             array1, array2, array3, array4, array5, array6]
+    table = [['Disease', 'Model Output', 'Model Prediction'], array1, array2, array3, array4, array5, array6]
     # Print the table
-    print("\n")
-    print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+    # print("\n")
+    # print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
     return image, grad_cam_images, prediction
 
 def plot_images(original_image, heatmap_image, disease_name):
@@ -162,13 +161,13 @@ def run_with_no_csv_prebuilt(filepath):
     weight_string = "densenet121-res224-mimic_nb"
     model = xrv.models.get_model(weight_string).to(device)
     model.eval()  # Set to evaluation mode
-    #thresholds are old and determine if model predictions are 1 or 0 based on model probability
-    thresholds = [0.67758954, 0.6397526, 0.5293094, 0.5173051, 0.2235725, 0]
+    # Thresholds determine if model predictions are 1 or 0 based on model probability
+    thresholds = [0.6739513, 0.6078657, 0.514972, 0.55786973, 0.2235725, 0]
     diseaseNames = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "No Finding", "Pleural Effusion"]
-    print("thresholds: ", thresholds)
+    # print("thresholds: ", thresholds)
     _, grad_cam_image, predictions = test_single_image_no_csv(filepath, thresholds, model)
-    for x in range(0,6):
-        plot_images(Image.open(filepath).convert("RGB"), grad_cam_image[x], diseaseNames[x])
+    # for x in range(0,6):
+    #     plot_images(Image.open(filepath).convert("RGB"), grad_cam_image[x], diseaseNames[x])
     grad_cam_images_base64 = [image_to_base64(img) for img in grad_cam_image]
     predictions[5] = "NaN"
     diseases_data = []
