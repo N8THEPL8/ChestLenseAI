@@ -29,7 +29,12 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 
 7. **Demo password: password3**
 
-7. **Demo DICOM images available in src/demo_images. Example: src/demo_images/Alec.dcm**
+8. **Demo DICOM images available in src/demo_images. Example: src/demo_images/Alec.dcm**
+
+9. **Run the test cases.**
+    ```sh
+    python3 test_index.py
+    ```
 
 ## Demo
 
