@@ -1,14 +1,41 @@
-document.querySelector('form').addEventListener('submit', async function (e) {
+/*
+ * Handles form submission based on the button clicked:
+ * If the "Prebuilt" button is clicked, a POST call is generated to '/upload'.
+ * If the "Our model" button is clicked, a POST call is generated to '/upload-our-model'.
+ */
+document.querySelector('#uploadForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    const formData = new FormData(this);
+    const action = e.submitter.value === 'Prebuilt' ? '/upload' : '/upload-our-model';
+    await handleFormSubmit(e, action);
+});
 
-    const response = await fetch('/upload', {
+
+/*
+ * Handles form submission by sending a POST request to the specified URL with form data.
+ * 
+ * Parameters:
+ * - e: The event object representing the form submission.
+ * - url: The URL to which the POST request will be sent.
+ * 
+ * Returns:
+ * - A Promise that resolves to the JSON response from the server.
+ */
+async function handleFormSubmit(e, url) {
+    const formData = new FormData(e.target);
+
+    const response = await fetch(url, {
         method: 'POST',
         body: formData
     });
-
     const result = await response.json();
 
+    document.getElementById("scanId").value = result.Study_ID; // updating Scan ID
+
+    /* Updates the HTML content of elements with specific IDs 
+     * using data from the result object.
+    */
+    const existing_comment = document.getElementById('output2');
+    existing_comment.innerHTML = result.comment ? `${result.comment}` : '';
 
     const p_name = document.getElementById('p_name');
     p_name.innerHTML = `${result.Patient_Name}`;
@@ -22,64 +49,102 @@ document.querySelector('form').addEventListener('submit', async function (e) {
     const p_bod = document.getElementById('p_bod');
     p_bod.innerHTML = `${result.Patient_Birth_Date}`;
 
-
     const p_ad = document.getElementById('p_ad');
     p_ad.innerHTML = `${result.Acquisition_Date}`;
 
     const p_pos = document.getElementById('p_pos');
-    p_pos.innerHTML = `${result.View_Position}`;
-
-    const p_orient = document.getElementById('p_orient');
-    p_orient.innerHTML = `${result.Patient_Orientation}`;
+    if (result.View_Position === 'AP') {
+        p_pos.innerHTML = 'Anterior-Posterior';
+    } else if (result.View_Position === 'PA') {
+        p_pos.innerHTML = 'Posterior-Anterior';
+    } else {
+        p_pos.innerHTML = `${result.View_Position}`;
+    }
 
     const p_age = document.getElementById('p_age');
     p_age.innerHTML = `${result.Patient_Age_at_Time_of_Acquisition}`;
 
-    const ate_prob = document.getElementById('ate_prob');
-    ate_prob.innerHTML = `${result.Model_Atelectasis}%`;
-
     const ate_actual = document.getElementById('ate_actual');
-    ate_actual.innerHTML = `${result.Actual_Atelectasis}`;
-
-    const car_prob = document.getElementById('car_prob');
-    car_prob.innerHTML = `${result.Model_Cardiomegaly}%`;
+    ate_actual.innerHTML = `${result.diseasesData[0].prediction}`;
 
     const car_actual = document.getElementById('car_actual');
-    car_actual.innerHTML = `${result.Actual_Cardiomegaly}`;
-
-    const con_prob = document.getElementById('con_prob');
-    con_prob.innerHTML = `${result.Model_Consolidation}%`;
+    car_actual.innerHTML = `${result.diseasesData[1].prediction}`;
 
     const con_actual = document.getElementById('con_actual');
-    con_actual.innerHTML = `${result.Actual_Consolidation}`;
-
-    const ede_prob = document.getElementById('ede_prob');
-    ede_prob.innerHTML = `${result.Model_Edema}%`;
+    con_actual.innerHTML = `${result.diseasesData[2].prediction}`;
 
     const ede_actual = document.getElementById('ede_actual');
-    ede_actual.innerHTML = `${result.Actual_Edema}`;
+    ede_actual.innerHTML = `${result.diseasesData[3].prediction}`;
 
-    const eff_prob = document.getElementById('eff_prob');
-    eff_prob.innerHTML = `${result.Model_Effusion}%`;
+    const nof_actual = document.getElementById('nof_actual');
+    nof_actual.innerHTML = `${result.diseasesData[4].prediction}`;
 
     const eff_actual = document.getElementById('eff_actual');
-    eff_actual.innerHTML = `${result.Actual_Effusion}`;
+    eff_actual.innerHTML = `${result.diseasesData[5].prediction}`;
 
+    // Sends a GET request to '/fetchimage' endpoint to retrieve image data.
     const response2 = await fetch('/fetchimage');
-
     const result2 = await response2.json();
+    document.getElementById("output").src = `uploads\\${result2.filename}?${new Date().getTime()}`;
 
-    console.log(result2.filename);
-    document.getElementById("output").src = `uploads\\${result2.filename}`;
+    // Tracks for changes in the dropdown menu and updates the displayed image accordingly
+    const dropdown = document.getElementById('imageOptions');
+    dropdown.addEventListener('change', function () {
+        console.log('clicked')
+        const selectedOption = dropdown.options[dropdown.selectedIndex].value;
+        const imageElement = document.getElementById('output');
 
+        if (selectedOption === 'option1') {
+            document.getElementById("output").src = `uploads\\${result2.filename}`;
+        } else if (selectedOption === 'option2') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[0].gradCamImage;
+        } else if (selectedOption === 'option3') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[1].gradCamImage;
+        } else if (selectedOption === 'option4') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[2].gradCamImage;
+        } else if (selectedOption === 'option5') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[3].gradCamImage;
+        } else if (selectedOption === 'option6') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[4].gradCamImage;
+        } else if (selectedOption === 'option7') {
+            imageElement.src = 'data:image/jpeg;base64,' + result.diseasesData[5].gradCamImage;
+        }
+    });
+    
+    // Handles form submission for adding comments
+    document.getElementById("commentsForm").addEventListener("submit", function(event) {
+        event.preventDefault(); 
+
+        var textareaContent = document.getElementById("output2").value;
+        var scanId = document.getElementById("scanId").value;
+
+        var payload = {
+            textarea_content: textareaContent,
+            scan_id: scanId
+        };
+
+        fetch('/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const comment = document.getElementById('output2');
+            comment.innerHTML = `${data.comment}`;
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    });
+    
+    // Sends a DELETE request to '/deleteimage' endpoint to delete an image
     const response3 = await fetch('/deleteimage');
-});
-
-var loadFile = function (event) {
-    var image = document.getElementById('output');
-    image.src = URL.createObjectURL(event.target.files[0]);
-};
-
-function eraseText() {
-    document.getElementById("output2").value = "";
 }
