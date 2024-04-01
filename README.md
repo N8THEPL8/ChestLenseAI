@@ -14,6 +14,10 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
     ```
     or
     ```sh
+    install_packages.bat
+    ```
+    or
+    ```sh
     pip install -r requirements.txt
     ```
 
