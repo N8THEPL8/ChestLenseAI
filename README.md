@@ -6,11 +6,11 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 
 ## Getting started
 
-1. **Clone this repository.**
+1.  **Clone this repository.**
 
-2. **Install the required dependencies.**
+2.  **Install the required dependencies.**
 
-	*bash < packages.txt* is recommended to maintain Python library versions
+    *bash < packages.txt* is recommended to maintain Python library versions
     ```sh
     bash < packages.txt
     ```
@@ -23,27 +23,27 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
     pip install -r requirements.txt
     ```
 
-3. **Navigate to the client folder.**
+3.  **Navigate to the client folder.**
     ```sh
     cd src/client
     ```
 
-4. **Run the program.**
+4.  **Run the program.**
     ```sh
     python3 index.py
     ```
 
 
-5.  **Go to** http://localhost:987
+5.  **Go to** http://localhost:9874
 
 6.  **Demo username:** doctor3@gmail.com
 
-
 7.  **Demo password (not secure):** password3
 
-8. **Demo DICOM images available in src/demo_images. Example: src/demo_images/Alec.dcm**
+8.  **Note:**
+    The demo will show six patients, each of which has a corresponding DICOM image available in src/demo_images. Example: src/demo_images/Steven.dcm. Currently, Steven.dcm has already been uploaded for testing purposes, but users can try uploading the remaining DICOMs. Also, the dropdown for past scans will only show uploaded scans for the currently selected patient. The database is not publicly accessible, so feel free to reach out to our team if you would like the demo to be reset.
 
-9. **Run the test cases.**
+9.  **Run the front end test cases.**
     ```sh
     python3 test_index.py
     ```

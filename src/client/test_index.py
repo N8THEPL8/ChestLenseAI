@@ -37,9 +37,9 @@ class TestIndex(unittest.TestCase):
     def test_doctor_authenticated(self):
         with self.app as client:
             with client.session_transaction() as sess:
-                sess['d_id'] = 1 
+                sess['d_id'] = 3
             response = client.get('/doctor')
-            doctor_id = "d1"
+            doctor_id = "d3"
             patients = Patient.query.filter_by(d_id=doctor_id).all()
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.content_type, 'text/html; charset=utf-8')
