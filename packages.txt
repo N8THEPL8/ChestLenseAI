@@ -1,0 +1,12 @@
+pip install Flask-SQLAlchemy
+pip install PyMySQL
+pip install torch torchvision 
+pip install tabulate
+pip install grad-cam
+pip install scikit-learn
+pip install scikit-image
+pip install pandas
+pip install numpy
+pip install matplotlib
+pip install opencv-python
+pip install Pillow

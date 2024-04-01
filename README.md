@@ -10,6 +10,10 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 
 2. **Install the required dependencies.**
     ```sh
+    bash < packages.txt
+    ```
+    or
+    ```sh
     pip install -r requirements.txt
     ```
 
