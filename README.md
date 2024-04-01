@@ -9,6 +9,7 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 1. **Clone this repository.**
 
 2. **Install the required dependencies.**
+
 	*bash < packages.txt* is recommended to maintain Python library versions
     ```sh
     bash < packages.txt
