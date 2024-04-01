@@ -9,6 +9,8 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
 1. **Clone this repository.**
 
 2. **Install the required dependencies.**
+
+	*bash < packages.txt* is recommended to maintain Python library versions
     ```sh
     bash < packages.txt
     ```
@@ -31,11 +33,13 @@ Currently, radiologists manually analyze chest X-ray images to find any abnormal
     python3 index.py
     ```
 
-5. **Go to http://localhost:9874**
 
-6. **Demo username: doctor3@gmail.com**
+5.  **Go to** http://localhost:987
 
-7. **Demo password: password3**
+6.  **Demo username:** doctor3@gmail.com
+
+
+7.  **Demo password (not secure):** password3
 
 8. **Demo DICOM images available in src/demo_images. Example: src/demo_images/Alec.dcm**
 
